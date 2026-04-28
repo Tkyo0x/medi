@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 import { signToken } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
-  const user = await db.get('SELECT * FROM users WHERE email = ?', [email])
+  
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .maybeSingle()
+
   if (!user || !bcrypt.compareSync(password, user.password))
     return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 })
 
