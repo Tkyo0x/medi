@@ -1,6 +1,13 @@
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
-import type { User } from '@/types'
+
+// Definimos la interfaz aquí mismo para que TypeScript no se pierda
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  specialty?: string;
+}
 
 const SECRET = process.env.JWT_SECRET || 'fallback_secret'
 
