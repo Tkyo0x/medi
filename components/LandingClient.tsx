@@ -18,7 +18,7 @@ import AclsMonitor from '@/components/modules/AclsMonitor'
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 interface ModuleStatus { subscribed_modules: string[]; active_trials: ActiveTrial[]; all_trials: string[] }
-interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[] }
+interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[]; price?: string; duration?: string; durationUnit?: string }
 
 const BADGE: Record<string, { text: string; cls: string }> = {
   active: { text: 'Disponible', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -42,7 +42,7 @@ const CL: Record<string, { text: string; bg: string; light: string; iconBg: stri
   '#ef4444': { text: 'text-red-600', bg: 'bg-red-600', light: 'bg-red-50', iconBg: 'bg-red-100', ring: 'ring-red-200', gradient: 'from-red-500 to-red-600' },
 }
 
-export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules }: Props) {
+export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules, price = '3.00', duration = '12', durationUnit = 'months' }: Props) {
   const { isSignedIn: clerkSignedIn } = useUser()
   const isSignedIn = clerkSignedIn ?? initialSignedIn
 
@@ -103,6 +103,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   const isSubscribed = (id: string) => modStatus?.subscribed_modules?.includes(id)
   const hasTried = (id: string) => modStatus?.all_trials?.includes(id)
   const selectedMod = modules.find(m => m.id === selectedModule)
+  const durationLabel = durationUnit === 'days' ? (duration === '1' ? 'día' : 'días') : durationUnit === 'years' ? (duration === '1' ? 'año' : 'años') : (duration === '1' ? 'mes' : 'meses')
+  const priceTag = `$${price}/${duration} ${durationLabel}`
+  const priceShort = `$${price}`
 
   // ══════════════════════════════════════════════
   //  VISTA MÓDULO ACTIVO (FULLSCREEN)
@@ -483,7 +486,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 <Sparkles className="w-3 h-3" /> Catálogo Clínico
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Un módulo para cada flujo crítico</h2>
-              <p className="text-sm sm:text-base text-slate-500 font-medium">$3 USD/año por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
+              <p className="text-sm sm:text-base text-slate-500 font-medium">{priceShort} USD/{duration} {durationLabel} por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
             </div>
             <div className="text-sm font-bold text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
               {modules.filter(m => m.status === 'active').length} disponible{modules.filter(m => m.status === 'active').length > 1 ? 's' : ''} · {modules.filter(m => m.status !== 'active').length} en desarrollo
@@ -504,11 +507,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                   className={`group rounded-2xl border border-slate-200/80 overflow-hidden bg-white card-lift flex flex-col anim-slide d${Math.min(idx + 1, 6)} ${live ? 'cursor-pointer' : 'opacity-50 grayscale-[0.15]'}`}
                   onClick={() => { if (!live) return; if (!isSignedIn) return; handleModuleClick(mod.id) }}
                 >
-                  {/* Color strip */}
                   <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${mod.color}, ${mod.color}88)` }} />
 
                   <div className="p-6 flex-1 flex flex-col">
-                    {/* Header */}
                     <div className="flex items-start justify-between mb-5">
                       <div className={`${c.iconBg} p-2.5 rounded-xl ${c.text} ring-4 ${c.ring}/30 shadow-sm`}>
                         {ICON_MAP[mod.icon] || <Heart className="w-5 h-5" />}
@@ -520,12 +521,10 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                       </div>
                     </div>
 
-                    {/* Info */}
                     <h3 className="text-base font-black text-slate-900 mb-0.5 group-hover:text-slate-800 transition-colors">{mod.name}</h3>
                     <p className={`text-xs font-bold ${c.text} mb-3`}>{mod.tagline}</p>
                     <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-5 line-clamp-2">{mod.description}</p>
 
-                    {/* Features */}
                     <ul className="space-y-2 mb-5">
                       {mod.features.slice(0, 3).map((f, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs text-slate-600 font-medium">
@@ -535,9 +534,8 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                     </ul>
                     {mod.features.length > 3 && <p className={`text-[11px] font-bold ${c.text} mb-4`}>+{mod.features.length - 3} características más</p>}
 
-                    {/* Footer */}
                     <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-black text-slate-900">$3 <span className="font-bold text-slate-400">USD/año</span></span>
+                      <span className="text-xs font-black text-slate-900">{priceShort} <span className="font-bold text-slate-400">USD/{duration} {durationLabel}</span></span>
                       {live && !isSignedIn && (
                         <SignInButton mode="modal">
                           <button onClick={e => e.stopPropagation()} className={`text-xs font-black ${c.text} flex items-center gap-1 hover:gap-2 transition-all`}>Probar gratis <ArrowRight className="w-3.5 h-3.5" /></button>
@@ -562,7 +560,6 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-teal-50/40 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {/* Header centrado */}
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-teal-200 mb-5">
               <Sparkles className="w-3 h-3" /> Precio transparente
@@ -573,7 +570,6 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
 
           <div className="flex flex-col lg:flex-row items-stretch gap-6 max-w-4xl mx-auto">
 
-            {/* Card izquierda — El precio grande */}
             <div className="flex-1 relative">
               <div className="absolute -inset-3 bg-gradient-to-br from-teal-200/25 via-cyan-100/15 to-emerald-200/20 rounded-[2.5rem] blur-2xl pointer-events-none" />
               <div className="relative bg-white rounded-[2rem] border-2 border-teal-300/50 p-8 shadow-[0_20px_60px_-15px_rgba(13,148,136,0.12)] h-full flex flex-col">
@@ -582,13 +578,13 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 <div className="pt-4 mb-6">
                   <p className="text-sm font-bold text-slate-500 mb-4">Suscripción por módulo</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">$3</span>
+                    <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">${price}</span>
                     <div className="flex flex-col">
                       <span className="text-lg font-black text-slate-400">USD</span>
-                      <span className="text-xs font-bold text-slate-300 -mt-1">por año</span>
+                      <span className="text-xs font-bold text-slate-300 -mt-1">por {duration} {durationLabel}</span>
                     </div>
                   </div>
-                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ $0.25 USD/mes por módulo</p>
+                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ ${(parseFloat(price) / Math.max(1, parseInt(duration))).toFixed(2)} USD/{durationUnit === 'months' ? 'mes' : durationUnit === 'days' ? 'día' : 'año'} por módulo</p>
                 </div>
 
                 <div className="flex-1 space-y-3.5 mb-8">
@@ -638,7 +634,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                       ) : trial ? (
                         <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 flex items-center gap-1"><Timer className="w-3 h-3" />{trial.hours_left}h</span>
                       ) : live ? (
-                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">$3<span className="text-slate-400 font-bold">/año</span></span>
+                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">{priceShort}<span className="text-slate-400 font-bold">/{duration}{durationUnit === 'months' ? 'm' : durationUnit === 'days' ? 'd' : 'a'}</span></span>
                       ) : (
                         <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">Pronto</span>
                       )}

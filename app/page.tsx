@@ -37,11 +37,18 @@ export default async function Home() {
     }
   }
 
+  const { data: configData } = await supabase.from('app_config').select('*')
+  const config: Record<string, string> = {}
+  ;(configData || []).forEach((r: any) => { config[r.key] = r.value })
+
   return (
     <LandingClient
       isSignedIn={!!userId}
       moduleStatus={moduleStatus}
       modules={MODULES}
+      price={config.module_price || '3.00'}
+      duration={config.subscription_duration || '12'}
+      durationUnit={config.subscription_unit || 'months'}
     />
   )
 }
