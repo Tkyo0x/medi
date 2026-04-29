@@ -61,13 +61,17 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const [allTr, setAllTr] = useState(allTrials)
 
   // Admin state
-  const [adminTab, setAdminTab] = useState<'stats' | 'subs' | 'trials' | 'logs'>('stats')
+  const [adminTab, setAdminTab] = useState<'stats' | 'subs' | 'trials' | 'logs' | 'users'>('stats')
   const [adminStats, setAdminStats] = useState<any>(null)
   const [adminSubs, setAdminSubs] = useState<any[]>([])
   const [adminTrials, setAdminTrials] = useState<any[]>([])
   const [adminLogs, setAdminLogs] = useState<any[]>([])
+  const [adminUsers, setAdminUsers] = useState<any[]>([])
   const [adminLoading, setAdminLoading] = useState(false)
-  const [grantForm, setGrantForm] = useState({ user_id: '', module_id: '', type: 'sub' })
+  const [userSearch, setUserSearch] = useState('')
+  const [userResults, setUserResults] = useState<any[]>([])
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [grantModule, setGrantModule] = useState('')
 
   const trialFor = (id: string) => trials.find(t => t.module_id === id)
   const isSub = (id: string) => isAdmin || subMods.includes(id)
@@ -116,6 +120,14 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const loadAdminSubs = async () => { setAdminLoading(true); const r = await fetch('/api/admin/subscriptions'); if (r.ok) setAdminSubs(await r.json()); setAdminLoading(false) }
   const loadAdminTrials = async () => { setAdminLoading(true); const r = await fetch('/api/admin/trials'); if (r.ok) setAdminTrials(await r.json()); setAdminLoading(false) }
   const loadAdminLogs = async () => { setAdminLoading(true); const r = await fetch('/api/admin/logs?limit=100'); if (r.ok) setAdminLogs(await r.json()); setAdminLoading(false) }
+  const loadAdminUsers = async () => { setAdminLoading(true); const r = await fetch('/api/admin/users'); if (r.ok) setAdminUsers(await r.json()); setAdminLoading(false) }
+
+  const searchUsers = async (q: string) => {
+    setUserSearch(q)
+    if (q.length < 2) { setUserResults([]); return }
+    const r = await fetch(`/api/admin/users?search=${encodeURIComponent(q)}`)
+    if (r.ok) setUserResults(await r.json())
+  }
 
   const loadAdminTab = (tab: typeof adminTab) => {
     setAdminTab(tab)
@@ -123,21 +135,25 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
     else if (tab === 'subs') loadAdminSubs()
     else if (tab === 'trials') loadAdminTrials()
     else if (tab === 'logs') loadAdminLogs()
+    else if (tab === 'users') loadAdminUsers()
   }
 
   useEffect(() => { if (panelView === 'admin') loadAdminStats() }, [panelView])
 
-  const grantAccess = async () => {
-    if (!grantForm.user_id || !grantForm.module_id) return
+  const grantSub = async () => {
+    if (!selectedUser || !grantModule) return
     setAdminLoading(true)
-    const url = grantForm.type === 'sub' ? '/api/admin/subscriptions' : '/api/admin/trials'
-    const body = grantForm.type === 'sub'
-      ? { user_id: grantForm.user_id, module_id: grantForm.module_id, months: 12 }
-      : { user_id: grantForm.user_id, module_id: grantForm.module_id, hours: 72 }
-    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    setGrantForm({ user_id: '', module_id: '', type: 'sub' })
-    if (adminTab === 'subs') loadAdminSubs(); else loadAdminTrials()
-    setAdminLoading(false)
+    await fetch('/api/admin/subscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: selectedUser.id, module_id: grantModule, months: 12 }) })
+    setSelectedUser(null); setGrantModule(''); setUserSearch(''); setUserResults([])
+    loadAdminSubs(); setAdminLoading(false)
+  }
+
+  const grantTrial = async () => {
+    if (!selectedUser || !grantModule) return
+    setAdminLoading(true)
+    await fetch('/api/admin/trials', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: selectedUser.id, module_id: grantModule, hours: 72 }) })
+    setSelectedUser(null); setGrantModule(''); setUserSearch(''); setUserResults([])
+    loadAdminTrials(); setAdminLoading(false)
   }
 
   const deleteRecord = async (type: 'subs' | 'trials', id: string) => {
@@ -187,6 +203,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
       <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl overflow-x-auto">
         {[
           { id: 'stats' as const, l: 'Resumen', i: <BarChart3 className="w-3.5 h-3.5" /> },
+          { id: 'users' as const, l: 'Usuarios', i: <Users className="w-3.5 h-3.5" /> },
           { id: 'subs' as const, l: 'Suscripciones', i: <Crown className="w-3.5 h-3.5" /> },
           { id: 'trials' as const, l: 'Trials', i: <Timer className="w-3.5 h-3.5" /> },
           { id: 'logs' as const, l: 'Logs', i: <Eye className="w-3.5 h-3.5" /> },
@@ -258,19 +275,44 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
             <h3 className="text-sm font-black text-slate-900 mb-4">Otorgar Suscripción</h3>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input type="text" placeholder="User ID (de Clerk)" value={grantForm.user_id} onChange={e => setGrantForm(p => ({ ...p, user_id: e.target.value }))}
-                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-teal-500" />
-              <select value={grantForm.module_id} onChange={e => setGrantForm(p => ({ ...p, module_id: e.target.value }))}
-                className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium bg-white focus:outline-none">
+            {/* User search */}
+            <div className="relative mb-3">
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white">
+                <Search className="w-4 h-4 text-slate-400" />
+                <input type="text" placeholder="Buscar por email..." value={selectedUser ? `${selectedUser.name} (${selectedUser.email})` : userSearch}
+                  onChange={e => { setSelectedUser(null); searchUsers(e.target.value) }}
+                  onFocus={() => { if (selectedUser) { setSelectedUser(null); setUserSearch('') } }}
+                  className="flex-1 text-sm font-medium focus:outline-none" />
+                {selectedUser && <button onClick={() => { setSelectedUser(null); setUserSearch('') }} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>}
+              </div>
+              {userResults.length > 0 && !selectedUser && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-[200px] overflow-y-auto">
+                  {userResults.map(u => (
+                    <button key={u.id} onClick={() => { setSelectedUser(u); setUserResults([]) }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left border-b border-slate-50 last:border-0">
+                      {u.image && <img src={u.image} className="w-7 h-7 rounded-full" alt="" />}
+                      <div className="min-w-0">
+                        <span className="text-sm font-bold text-slate-900 block truncate">{u.name}</span>
+                        <span className="text-[11px] text-slate-500 truncate block">{u.email}</span>
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-mono ml-auto shrink-0">{u.id.slice(-8)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <select value={grantModule} onChange={e => setGrantModule(e.target.value)}
+                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium bg-white focus:outline-none">
                 <option value="">Módulo...</option>
                 {modules.filter(m => m.status === 'active').map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
-              <button onClick={grantAccess} disabled={!grantForm.user_id || !grantForm.module_id}
+              <button onClick={grantSub} disabled={!selectedUser || !grantModule}
                 className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-500 transition-all disabled:opacity-40 flex items-center gap-1.5">
                 <Plus className="w-4 h-4" /> Otorgar
               </button>
             </div>
+            {selectedUser && <p className="text-[10px] text-slate-400 mt-2">ID: {selectedUser.id}</p>}
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -302,18 +344,40 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
       {!adminLoading && adminTab === 'trials' && (
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 mb-4">Otorgar Trial</h3>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input type="text" placeholder="User ID (de Clerk)" value={grantForm.user_id} onChange={e => setGrantForm(p => ({ ...p, user_id: e.target.value }))}
-                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-teal-500" />
-              <select value={grantForm.module_id} onChange={e => setGrantForm(p => ({ ...p, module_id: e.target.value }))}
-                className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium bg-white focus:outline-none">
+            <h3 className="text-sm font-black text-slate-900 mb-4">Otorgar Trial (72h)</h3>
+            <div className="relative mb-3">
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white">
+                <Search className="w-4 h-4 text-slate-400" />
+                <input type="text" placeholder="Buscar por email..." value={selectedUser ? `${selectedUser.name} (${selectedUser.email})` : userSearch}
+                  onChange={e => { setSelectedUser(null); searchUsers(e.target.value) }}
+                  onFocus={() => { if (selectedUser) { setSelectedUser(null); setUserSearch('') } }}
+                  className="flex-1 text-sm font-medium focus:outline-none" />
+                {selectedUser && <button onClick={() => { setSelectedUser(null); setUserSearch('') }} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>}
+              </div>
+              {userResults.length > 0 && !selectedUser && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-[200px] overflow-y-auto">
+                  {userResults.map(u => (
+                    <button key={u.id} onClick={() => { setSelectedUser(u); setUserResults([]) }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left border-b border-slate-50 last:border-0">
+                      {u.image && <img src={u.image} className="w-7 h-7 rounded-full" alt="" />}
+                      <div className="min-w-0">
+                        <span className="text-sm font-bold text-slate-900 block truncate">{u.name}</span>
+                        <span className="text-[11px] text-slate-500 truncate block">{u.email}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <select value={grantModule} onChange={e => setGrantModule(e.target.value)}
+                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium bg-white focus:outline-none">
                 <option value="">Módulo...</option>
                 {modules.filter(m => m.status === 'active').map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
-              <button onClick={() => { setGrantForm(p => ({ ...p, type: 'trial' })); grantAccess() }} disabled={!grantForm.user_id || !grantForm.module_id}
+              <button onClick={grantTrial} disabled={!selectedUser || !grantModule}
                 className="px-4 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-400 transition-all disabled:opacity-40 flex items-center gap-1.5">
-                <Gift className="w-4 h-4" /> 72h Trial
+                <Gift className="w-4 h-4" /> 72h
               </button>
             </div>
           </div>
@@ -362,6 +426,58 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* USERS */}
+      {!adminLoading && adminTab === 'users' && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-slate-400" />
+              <input type="text" placeholder="Buscar usuario por email..." onChange={e => searchUsers(e.target.value)}
+                className="flex-1 text-sm font-medium focus:outline-none" />
+            </div>
+            {userResults.length > 0 && (
+              <div className="border-t border-slate-100 pt-3 mt-3 space-y-1">
+                {userResults.map(u => (
+                  <div key={u.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      {u.image && <img src={u.image} className="w-8 h-8 rounded-full" alt="" />}
+                      <div>
+                        <span className="text-sm font-bold text-slate-900 block">{u.name}</span>
+                        <span className="text-[11px] text-slate-500">{u.email}</span>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded">{u.id.slice(-12)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-100">
+              <h3 className="text-sm font-black text-slate-900">Usuarios Registrados ({adminUsers.length})</h3>
+            </div>
+            <div className="max-h-[400px] overflow-y-auto">
+              {adminUsers.map((u: any) => (
+                <div key={u.id} className="flex items-center justify-between px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {u.image && <img src={u.image} className="w-8 h-8 rounded-full shrink-0" alt="" />}
+                    <div className="min-w-0">
+                      <span className="text-sm font-bold text-slate-900 block truncate">{u.name}</span>
+                      <span className="text-[11px] text-slate-500 block truncate">{u.email}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[9px] font-mono text-slate-400">{u.id.slice(-8)}</span>
+                    <span className="text-[9px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded">{new Date(u.created).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
