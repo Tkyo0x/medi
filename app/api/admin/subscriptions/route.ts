@@ -8,7 +8,12 @@ export async function GET() {
   if (!isAdmin(userId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data } = await supabase.from('subscriptions').select('*').order('created_at', { ascending: false })
-  return NextResponse.json(data || [])
+  const clerk = (await import('@clerk/nextjs/server')).clerkClient
+  const cl = await clerk()
+  const enriched = await Promise.all((data || []).map(async (s: any) => {
+    try { const u = await cl.users.getUser(s.user_id); return { ...s, user_email: u.emailAddresses[0]?.emailAddress || '' } } catch { return { ...s, user_email: '' } }
+  }))
+  return NextResponse.json(enriched)
 }
 
 export async function POST(req: NextRequest) {

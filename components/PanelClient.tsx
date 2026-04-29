@@ -324,7 +324,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               {adminSubs.map((s: any) => (
                 <div key={s.id} className="flex items-center justify-between px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50">
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-slate-900 block truncate">{s.user_id?.slice(-12)}</span>
+                    <span className="text-xs font-bold text-slate-900 block truncate">{s.user_email || s.user_id?.slice(-12)}</span>
                     <span className="text-[10px] text-slate-500">{s.module_id} · {s.payment_ref}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -391,7 +391,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               {adminTrials.map((t: any) => (
                 <div key={t.id} className="flex items-center justify-between px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50">
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-slate-900 block truncate">{t.user_id?.slice(-12)}</span>
+                    <span className="text-xs font-bold text-slate-900 block truncate">{t.user_email || t.user_id?.slice(-12)}</span>
                     <span className="text-[10px] text-slate-500">{t.module_id}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -418,7 +418,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b border-slate-50 last:border-0 text-xs hover:bg-slate-50">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-[10px] font-mono text-slate-400 w-14 shrink-0">{new Date(l.created_at).toLocaleTimeString('es-ES', { hour12: false })}</span>
-                  <span className="font-bold text-slate-700 truncate">{l.user_id?.slice(-12)}</span>
+                  <span className="font-bold text-slate-700 truncate">{l.user_email || l.user_id?.slice(-12)}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-slate-500">{l.module_id}</span>
