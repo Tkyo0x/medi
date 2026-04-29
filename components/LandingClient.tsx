@@ -254,7 +254,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                   Ver módulos clínicos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </a>
                 <a href="#pricing" className="inline-flex items-center gap-2 bg-white text-slate-700 px-6 py-3 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm">
-                  $3/módulo/año
+                  {priceTag}/módulo
                 </a>
               </div>
 

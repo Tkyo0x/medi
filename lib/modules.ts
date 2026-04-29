@@ -82,18 +82,6 @@ export const MODULES: Module[] = [
     status: 'coming_soon',
     features: ['Plantillas neonatales', 'Evoluciones SOAP', 'Firma electrónica', 'Export HL7/FHIR', 'Auditoría', 'Multi-dispositivo'],
   },
-  {
-    id: 'lab-tracker',
-    name: 'LabTrack Neo',
-    tagline: 'Seguimiento de Laboratorios',
-    description: 'Seguimiento y análisis de resultados de laboratorio neonatal con tendencias y alertas de valores críticos.',
-    category: 'Laboratorio',
-    color: '#ec4899',
-    icon: '🧪',
-    version: '1.0',
-    status: 'coming_soon',
-    features: ['Resultados en tiempo real', 'Tendencias gráficas', 'Alertas críticas', 'Correlación clínica', 'Hemocultivos', 'Export investigación'],
-  },
 ]
 
 export function getModule(id: string): Module | undefined {
