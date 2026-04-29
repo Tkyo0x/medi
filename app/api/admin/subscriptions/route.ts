@@ -20,14 +20,23 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth()
   if (!isAdmin(userId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { user_id, module_id, months = 12 } = await req.json()
+  const { user_id, module_id } = await req.json()
   if (!user_id || !module_id) return NextResponse.json({ error: 'user_id and module_id required' }, { status: 400 })
 
+  const { data: configData } = await supabase.from('app_config').select('*')
+  const cfg: Record<string, string> = {}
+  ;(configData || []).forEach((r: any) => { cfg[r.key] = r.value })
+  const price = parseFloat(cfg.module_price || '3.00')
+  const duration = parseInt(cfg.subscription_duration || '12')
+  const unit = cfg.subscription_unit || 'months'
+
   const expires = new Date()
-  expires.setMonth(expires.getMonth() + months)
+  if (unit === 'months') expires.setMonth(expires.getMonth() + duration)
+  else if (unit === 'days') expires.setDate(expires.getDate() + duration)
+  else if (unit === 'years') expires.setFullYear(expires.getFullYear() + duration)
 
   const { data, error } = await supabase.from('subscriptions').upsert({
-    user_id, module_id, price_usd: 3.00, status: 'active',
+    user_id, module_id, price_usd: price, status: 'active',
     starts_at: new Date().toISOString(), expires_at: expires.toISOString(),
     payment_ref: 'ADMIN_GRANT'
   }, { onConflict: 'user_id,module_id' }).select().single()

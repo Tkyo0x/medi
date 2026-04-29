@@ -61,7 +61,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const [allTr, setAllTr] = useState(allTrials)
 
   // Admin state
-  const [adminTab, setAdminTab] = useState<'stats' | 'subs' | 'trials' | 'logs' | 'users'>('stats')
+  const [adminTab, setAdminTab] = useState<'stats' | 'subs' | 'trials' | 'logs' | 'users' | 'config'>('stats')
   const [adminStats, setAdminStats] = useState<any>(null)
   const [adminSubs, setAdminSubs] = useState<any[]>([])
   const [adminTrials, setAdminTrials] = useState<any[]>([])
@@ -72,6 +72,8 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const [userResults, setUserResults] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [grantModule, setGrantModule] = useState('')
+  const [appConfig, setAppConfig] = useState<Record<string, string>>({})
+  const [configSaving, setConfigSaving] = useState(false)
 
   const trialFor = (id: string) => trials.find(t => t.module_id === id)
   const isSub = (id: string) => isAdmin || subMods.includes(id)
@@ -136,7 +138,11 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
     else if (tab === 'trials') loadAdminTrials()
     else if (tab === 'logs') loadAdminLogs()
     else if (tab === 'users') loadAdminUsers()
+    else if (tab === 'config') loadConfig()
   }
+
+  const loadConfig = async () => { setAdminLoading(true); const r = await fetch('/api/admin/config'); if (r.ok) setAppConfig(await r.json()); setAdminLoading(false) }
+  const saveConfig = async () => { setConfigSaving(true); await fetch('/api/admin/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig) }); setConfigSaving(false) }
 
   useEffect(() => { if (panelView === 'admin') loadAdminStats() }, [panelView])
 
@@ -207,6 +213,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
           { id: 'subs' as const, l: 'Suscripciones', i: <Crown className="w-3.5 h-3.5" /> },
           { id: 'trials' as const, l: 'Trials', i: <Timer className="w-3.5 h-3.5" /> },
           { id: 'logs' as const, l: 'Logs', i: <Eye className="w-3.5 h-3.5" /> },
+          { id: 'config' as const, l: 'Config', i: <Settings className="w-3.5 h-3.5" /> },
         ].map(t => (
           <button key={t.id} onClick={() => loadAdminTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${adminTab === t.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -427,6 +434,66 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+{/* CONFIG */}
+      {!adminLoading && adminTab === 'config' && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 mb-4">Precios y Duración</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Precio por módulo (USD)</label>
+                <input type="number" step="0.01" value={appConfig.module_price || ''} onChange={e => setAppConfig(p => ({ ...p, module_price: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-black focus:outline-none focus:border-teal-500" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Duración</label>
+                <input type="number" value={appConfig.subscription_duration || ''} onChange={e => setAppConfig(p => ({ ...p, subscription_duration: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-black focus:outline-none focus:border-teal-500" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Unidad</label>
+                <select value={appConfig.subscription_unit || 'months'} onChange={e => setAppConfig(p => ({ ...p, subscription_unit: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold bg-white focus:outline-none">
+                  <option value="days">Días</option>
+                  <option value="months">Meses</option>
+                  <option value="years">Años</option>
+                </select>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-400 font-medium mb-4">
+              Actualmente: <span className="font-black text-slate-700">${appConfig.module_price || '3.00'} USD</span> por <span className="font-black text-slate-700">{appConfig.subscription_duration || '12'} {appConfig.subscription_unit === 'days' ? 'días' : appConfig.subscription_unit === 'years' ? 'años' : 'meses'}</span>
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 mb-4">Identidad de Marca</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Nombre de la App</label>
+                <input type="text" value={appConfig.app_name || ''} onChange={e => setAppConfig(p => ({ ...p, app_name: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold focus:outline-none focus:border-teal-500" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">URL del Logo (imagen externa)</label>
+                <input type="text" placeholder="https://ejemplo.com/logo.png" value={appConfig.logo_url || ''} onChange={e => setAppConfig(p => ({ ...p, logo_url: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-teal-500" />
+                {appConfig.logo_url && (
+                  <div className="mt-3 flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                    <img src={appConfig.logo_url} alt="Logo" className="w-10 h-10 rounded-lg object-contain" onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+                    <span className="text-xs text-slate-500 font-medium">Vista previa</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button onClick={saveConfig} disabled={configSaving}
+            className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-sm font-black hover:bg-slate-800 transition-all active:scale-[0.98] flex justify-center items-center gap-2">
+            {configSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4" /> Guardar Configuración</>}
+          </button>
         </div>
       )}
 
