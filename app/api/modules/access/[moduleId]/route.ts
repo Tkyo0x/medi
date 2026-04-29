@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase } from '@/lib/supabase'
+import { isAdmin } from '@/lib/admin'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ moduleId: string }> }) {
   try {
     const { userId } = await auth()
     if (!userId) return NextResponse.json({ access: false, reason: 'no_auth' })
+
+    if (isAdmin(userId)) return NextResponse.json({ access: true, reason: 'admin' })
 
     const { moduleId } = await params
     const now = new Date().toISOString()

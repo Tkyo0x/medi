@@ -2,6 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { MODULES } from '@/lib/modules'
+import { isAdmin as checkAdmin } from '@/lib/admin'
 import { PanelClient } from '@/components/PanelClient'
 
 export default async function PanelPage() {
@@ -9,6 +10,7 @@ export default async function PanelPage() {
   if (!userId) redirect('/sign-in')
 
   const user = await currentUser()
+  const admin = checkAdmin(userId)
   const now = new Date().toISOString()
 
   const { data: subs } = await supabase
@@ -29,8 +31,10 @@ export default async function PanelPage() {
 
   return (
     <PanelClient
+      userId={userId}
       userName={user?.firstName || user?.emailAddresses[0]?.emailAddress || 'Usuario'}
       userImage={user?.imageUrl || ''}
+      isAdmin={admin}
       modules={MODULES}
       subscribedModules={(subs || []).map(s => s.module_id)}
       activeTrials={activeTrials}
