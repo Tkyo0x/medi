@@ -12,10 +12,10 @@ export async function GET(req: NextRequest) {
   const { data } = await supabase.from('access_log').select('*').order('created_at', { ascending: false }).limit(limit)
   const clerk = (await import('@clerk/nextjs/server')).clerkClient
   const cl = await clerk()
-  const userCache: Record<string, string> = {}
+  const cache: Record<string, string> = {}
   const enriched = await Promise.all((data || []).map(async (l: any) => {
-    if (!userCache[l.user_id]) { try { const u = await cl.users.getUser(l.user_id); userCache[l.user_id] = u.emailAddresses[0]?.emailAddress || '' } catch { userCache[l.user_id] = '' } }
-    return { ...l, user_email: userCache[l.user_id] }
+    if (!cache[l.user_id]) { try { const u = await cl.users.getUser(l.user_id); cache[l.user_id] = u.emailAddresses[0]?.emailAddress || '' } catch { cache[l.user_id] = '' } }
+    return { ...l, user_email: cache[l.user_id] }
   }))
   return NextResponse.json(enriched)
 }

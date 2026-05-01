@@ -23,17 +23,17 @@ export async function POST(req: NextRequest) {
   const { user_id, module_id } = await req.json()
   if (!user_id || !module_id) return NextResponse.json({ error: 'user_id and module_id required' }, { status: 400 })
 
-  const { data: configData } = await supabase.from('app_config').select('*')
+  const { data: cfgData } = await supabase.from('app_config').select('*')
   const cfg: Record<string, string> = {}
-  ;(configData || []).forEach((r: any) => { cfg[r.key] = r.value })
+  ;(cfgData || []).forEach((r: any) => { cfg[r.key] = r.value })
   const price = parseFloat(cfg.module_price || '3.00')
-  const duration = parseInt(cfg.subscription_duration || '12')
+  const dur = parseInt(cfg.subscription_duration || '12')
   const unit = cfg.subscription_unit || 'months'
 
   const expires = new Date()
-  if (unit === 'months') expires.setMonth(expires.getMonth() + duration)
-  else if (unit === 'days') expires.setDate(expires.getDate() + duration)
-  else if (unit === 'years') expires.setFullYear(expires.getFullYear() + duration)
+  if (unit === 'days') expires.setDate(expires.getDate() + dur)
+  else if (unit === 'years') expires.setFullYear(expires.getFullYear() + dur)
+  else expires.setMonth(expires.getMonth() + dur)
 
   const { data, error } = await supabase.from('subscriptions').upsert({
     user_id, module_id, price_usd: price, status: 'active',

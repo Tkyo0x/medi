@@ -11,15 +11,11 @@ export default async function Home() {
     const now = new Date().toISOString()
 
     const { data: subs } = await supabase
-      .from('subscriptions')
-      .select('module_id, expires_at')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .gt('expires_at', now)
+      .from('subscriptions').select('module_id, expires_at')
+      .eq('user_id', userId).eq('status', 'active').gt('expires_at', now)
 
     const { data: trials } = await supabase
-      .from('trials')
-      .select('module_id, expires_at')
+      .from('trials').select('module_id, expires_at')
       .eq('user_id', userId)
 
     const activeTrials = (trials || [])
