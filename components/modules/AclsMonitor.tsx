@@ -39,10 +39,10 @@ const TIPOS_LIQUIDOS = [
 ];
 
 const AGENTES_HEMODERIVADOS = [
-  { id: 'gre', nombre: 'Glóbulos Rojos', corto: 'GRE', volDefault: 250 },
-  { id: 'pfc', nombre: 'Plasma Fresco', corto: 'PFC', volDefault: 200 },
-  { id: 'plaquetas', nombre: 'Plaquetas', corto: 'PLT', volDefault: 50 },
-  { id: 'crio', nombre: 'Crioprecipitados', corto: 'CRIO', volDefault: 20 }
+  { id: 'gre', nombre: 'Glóbulos Rojos', corto: 'GRE', unidad: 'U', volPorUnidad: 300, volDefault: 1 },
+  { id: 'pfc', nombre: 'Plasma Fresco', corto: 'PFC', unidad: 'U', volPorUnidad: 200, volDefault: 1 },
+  { id: 'plaquetas', nombre: 'Plaquetas', corto: 'PLT', unidad: 'U', volPorUnidad: 50, volDefault: 1 },
+  { id: 'crio', nombre: 'Crioprecipitados', corto: 'CRIO', unidad: 'U', volPorUnidad: 20, volDefault: 1 }
 ];
 
 const ANTIDOTOS_DATA = [
@@ -277,9 +277,11 @@ export default function AclsMonitor() {
   const handleAdminVolume = () => {
     const vol = parseInt(tempVolume);
     if (!isNaN(vol) && selectedLiquidForVol) {
-      const entry = { ...selectedLiquidForVol, volumen: vol, timestamp: new Date() };
+      const isHemo = selectedLiquidForVol.unidad === 'U';
+      const entry = { ...selectedLiquidForVol, volumen: isHemo ? vol * (selectedLiquidForVol.volPorUnidad || 1) : vol, unidades: isHemo ? vol : null, timestamp: new Date() };
       setLiquidosTotales(prev => [...prev, entry]);
-      addLog(`ADMIN: ${selectedLiquidForVol.corto} ${vol}mL`, "DOSIS");
+      const label = isHemo ? `${selectedLiquidForVol.corto} x${vol}U (${vol * (selectedLiquidForVol.volPorUnidad || 1)}mL)` : `${selectedLiquidForVol.corto} ${vol}mL`;
+      addLog(`ADMIN: ${label}`, "DOSIS");
       speak(`${selectedLiquidForVol.corto} administrado.`);
     }
     setTempVolume('');
@@ -378,18 +380,21 @@ export default function AclsMonitor() {
   };
 
   const generateReport = () => {
-    return `🏥 REPORTE CLÍNICO ACLS PRO\n` +
-           `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    return `EVOLUCIÓN MÉDICA — ACLS / SOPORTE VITAL CARDIOVASCULAR\n` +
+           `═══════════════════════════════════════════════════════\n` +
            `PACIENTE: ${pacienteNombre || 'N/I'}\n` +
-           `INICIO: ${horaInicio}\n` +
+           `FECHA: ${new Date().toLocaleDateString()} | INICIO: ${horaInicio}\n` +
            `DURACIÓN: ${formatTime(elapsedSeconds)}\n` +
-           `RITMO FINAL: ${(RITMOS as any)[ritmoActual].nombre}\n\n` +
-           `📊 INTERVENCIONES:\n` +
+           `RITMO FINAL: ${(RITMOS as any)[ritmoActual].nombre}\n` +
+           `RESULTADO: ${resultadoFinal || 'EN CURSO'}\n` +
+           `───────────────────────────────────────────────────────\n\n` +
+           `INTERVENCIONES:\n` +
            `• Choques Eléctricos: ${desfibrilaciones}\n` +
            `• Adrenalina: x${adrenalinas}\n` +
            `• Volumen Total: ${totalVolumen}mL\n` +
-           `• Vía Aérea: ${totSize ? `TOT #${totSize}` : 'No avanzada'}\n\n` +
-           `📝 BITÁCORA:\n` +
+           `• Vía Aérea: ${totSize ? `TOT #${totSize}` : 'No avanzada'}\n` +
+           `${vasopresores.length > 0 ? `• Vasopresores: ${vasopresores.join(', ')}\n` : ''}` +
+           `\nBITÁCORA CRONOLÓGICA:\n` +
            `${[...logs].reverse().map(l => `[${l.time}] ${l.msg}`).join('\n')}`;
   };
 
@@ -590,7 +595,7 @@ export default function AclsMonitor() {
           </button>
 
           <button onClick={() => setShowVasoModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-purple-400 active:bg-purple-500/10 active:scale-95 shadow-md">
-            <TrendingUp size={18}/> <span className="text-[8px] font-black uppercase">Drogas</span>
+            <TrendingUp size={18}/> <span className="text-[8px] font-black uppercase">Soporte</span>
           </button>
 
           <button onClick={() => setShowH5TModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-indigo-400 active:bg-indigo-500/10 active:scale-95 shadow-md">
@@ -749,7 +754,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-10 rounded-[50px] border border-slate-700 w-full max-w-xs shadow-2xl animate-in zoom-in-95">
             <h3 className={`text-center font-black uppercase mb-6 text-xs tracking-widest flex items-center justify-center gap-3 ${showGlucemiaModal ? 'text-amber-400' : 'text-blue-400'}`}>
                {showGlucemiaModal ? <Activity size={20}/> : <Droplets size={20}/>}
-               {showGlucemiaModal ? 'Glucemia (mg/dL)' : `${selectedLiquidForVol?.corto} (mL)`}
+               {showGlucemiaModal ? 'Glucemia (mg/dL)' : `${selectedLiquidForVol?.corto} (${selectedLiquidForVol?.unidad === 'U' ? 'Unidades' : 'mL'})`}
             </h3>
             <div className={`bg-black/50 p-8 rounded-[40px] mb-8 text-center text-6xl font-black h-28 flex items-center justify-center border border-slate-800 shadow-inner ${showGlucemiaModal ? 'text-amber-500' : 'text-blue-500'}`}>
               {(showGlucemiaModal ? tempGlucemia : tempVolume) || '0'}
@@ -833,6 +838,72 @@ export default function AclsMonitor() {
             }} className="w-full mt-6 flex items-center justify-center gap-2 text-indigo-600 font-black uppercase text-[11px]">
               {copied ? <Check size={18}/> : <Copy size={18}/>} {copied ? '¡Copiado!' : 'Copiar Reporte'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* DROGAS MODAL - Vasopresores & Sedoanalgesia */}
+      {showVasoModal && (
+        <div className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
+          <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-[32px] p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-black uppercase text-sm">Soporte Farmacológico</h3>
+              <button onClick={() => setShowVasoModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22} className="text-slate-400" /></button>
+            </div>
+            
+            <div className="mb-5">
+              <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-3">Vasopresores</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'norepinefrina', label: 'Norepinefrina', dose: '0.1-0.5 µg/kg/min' },
+                  { id: 'dopamina', label: 'Dopamina', dose: '5-20 µg/kg/min' },
+                  { id: 'dobutamina', label: 'Dobutamina', dose: '5-20 µg/kg/min' },
+                  { id: 'vasopresina', label: 'Vasopresina', dose: '40 U bolo' },
+                ].map(d => (
+                  <button key={d.id} onClick={() => handleVasoSelect(d.label)}
+                    className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl text-left active:scale-95 hover:bg-purple-500/20 transition-all">
+                    <span className="block text-xs font-black text-white">{d.label}</span>
+                    <span className="block text-[9px] text-purple-300 mt-0.5">{d.dose}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3">Sedoanalgesia</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'fentanilo', label: 'Fentanilo', dose: '1-2 µg/kg IV' },
+                  { id: 'midazolam', label: 'Midazolam', dose: '0.05-0.1 mg/kg IV' },
+                  { id: 'propofol', label: 'Propofol', dose: '1-2 mg/kg IV' },
+                  { id: 'ketamina', label: 'Ketamina', dose: '1-2 mg/kg IV' },
+                ].map(d => (
+                  <button key={d.id} onClick={() => { addLog(`SEDO: ${d.label.toUpperCase()} - ${d.dose}`, "DOSIS"); speak(`${d.label} administrado.`); setShowVasoModal(false); }}
+                    className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl text-left active:scale-95 hover:bg-cyan-500/20 transition-all">
+                    <span className="block text-xs font-black text-white">{d.label}</span>
+                    <span className="block text-[9px] text-cyan-300 mt-0.5">{d.dose}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3">Medicamentos RCP</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'amiodarona', label: 'Amiodarona', dose: '300mg bolo → 150mg' },
+                  { id: 'lidocaina', label: 'Lidocaína', dose: '1-1.5 mg/kg IV' },
+                  { id: 'atropina', label: 'Atropina', dose: '1 mg IV c/3-5 min' },
+                  { id: 'magnesio', label: 'Sulfato Mg', dose: '1-2g IV en 15 min' },
+                ].map(d => (
+                  <button key={d.id} onClick={() => { addLog(`MED RCP: ${d.label.toUpperCase()} - ${d.dose}`, "DOSIS"); speak(`${d.label} administrado.`); setShowVasoModal(false); }}
+                    className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left active:scale-95 hover:bg-amber-500/20 transition-all">
+                    <span className="block text-xs font-black text-white">{d.label}</span>
+                    <span className="block text-[9px] text-amber-300 mt-0.5">{d.dose}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

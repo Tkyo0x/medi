@@ -184,9 +184,11 @@ export default function PalsMonitor() {
   const [isShockZone, setIsShockZone] = useState(false);
   const [mode, setMode] = useState('15:2');
   const [weight, setWeight] = useState(10);
-  const [edad, setEdad] = useState('5');
-  const [edadUnidad, setEdadUnidad] = useState('años'); // 'años' o 'meses'
   const [pacienteNombre, setPacienteNombre] = useState('');
+  const [pacienteId, setPacienteId] = useState('');
+  const [realTime, setRealTime] = useState(new Date());
+  const [edad, setEdad] = useState('5');
+  const [edadUnidad, setEdadUnidad] = useState('años');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [cycleSeconds, setCycleSeconds] = useState(0);
   const [epiSeconds, setEpiSeconds] = useState(0); 
@@ -321,6 +323,8 @@ export default function PalsMonitor() {
     }
   }, [sugerenciaPALS, manualOverride, tecnicaRCP, isActive, addLog, speak]);
 
+  useEffect(() => { const t = setInterval(() => setRealTime(new Date()), 1000); return () => clearInterval(t) }, [])
+
   const handleStartRCP = (m: string) => {
     setMode(m); 
     setIsActive(true); 
@@ -369,9 +373,12 @@ export default function PalsMonitor() {
   const generateReportText = () => {
     const totalMin = Math.floor(elapsedSeconds / 60);
     const totalSec = elapsedSeconds % 60;
-    let report = `EPICRISIS MÉDICA PALS - RCP PEDIÁTRICO (v23.12 Platinum)\n`;
+    let report = `EVOLUCIÓN MÉDICA PALS - SOPORTE VITAL PEDIÁTRICO (v23.12)\n`;
     report += `======================================================================\n`;
-    report += `PACIENTE: ${pacienteNombre || 'S/D'} | EDAD: ${edad} ${edadUnidad.toUpperCase()} | PESO: ${weight}KG\n`;
+    report += `PACIENTE: ${pacienteNombre || 'S/D'} | ID: ${pacienteId || 'S/D'}\n`;
+    report += `EDAD: ${edad} ${edadUnidad.toUpperCase()} | PESO: ${weight}KG\n`;
+    report += `FECHA: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString('es-ES', { hour12: false })}\n`;
+    report += `ZONA HORARIA: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
     report += `----------------------------------------------------------------------\n\n`;
     
     report += `1. INTERVENCIONES Y TÉCNICA:\n`;
@@ -417,7 +424,7 @@ export default function PalsMonitor() {
     if (isActive && isCompressing && !isPaused && !isChecking) {
       const interval = (60 / bpmTarget) * 1000;
       metronomeRef.current = setInterval(() => {
-        const limit = mode === '15:2' ? 15 : 30;
+        const limit = mode === '30:2' ? 30 : 30; // 30:2 ratio or continuous
         if (mode === 'CONTINUA') {
           setCompresionCount(c => c + 1); 
           playBeep(1000, 0.06, 'sine'); 
@@ -452,7 +459,11 @@ export default function PalsMonitor() {
           <div className="bg-cyan-500/10 p-2 rounded-2xl border border-cyan-500/20"><Baby className="text-cyan-400" size={20}/></div>
           <div className="flex flex-col text-left">
             <h1 className="text-[10px] font-black uppercase text-cyan-500 leading-none tracking-widest">PALS MONITOR PRO</h1>
-            <p className="text-[7px] font-bold text-slate-500 uppercase mt-1">Platinum v23.12 • Age Unit Support</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[8px] font-bold text-slate-400 tabular-nums">{realTime.toLocaleTimeString('es-ES', { hour12: false })}</span>
+              <span className="text-[7px] font-bold text-slate-600">({Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop()})</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -630,8 +641,8 @@ export default function PalsMonitor() {
                   </div>
                </div>
                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <button onClick={() => handleStartRCP('15:2')} className="p-6 bg-emerald-600 text-white rounded-[28px] font-black text-xl shadow-xl active:scale-95 flex flex-col items-center gap-1 border-b-4 border-emerald-800"><span>15:2</span><span className="text-[8px] opacity-70">Soporte PALS</span></button>
-                  <button onClick={() => handleStartRCP('CONTINUA')} className="p-6 bg-slate-800 text-white rounded-[28px] font-black text-xl shadow-xl active:scale-95 flex flex-col items-center gap-1 border-b-4 border-slate-950 border border-white/10"><span>Avanzada</span><span className="text-[8px] opacity-70">TOT / Continua</span></button>
+                  <button onClick={() => handleStartRCP('30:2')} className="p-6 bg-emerald-600 text-white rounded-[28px] font-black text-xl shadow-xl active:scale-95 flex flex-col items-center gap-1 border-b-4 border-emerald-800"><span>30:2</span><span className="text-[8px] opacity-70">Soporte PALS</span></button>
+                  <button onClick={() => handleStartRCP('CONTINUA')} className="p-6 bg-slate-800 text-white rounded-[28px] font-black text-xl shadow-xl active:scale-95 flex flex-col items-center gap-1 border-b-4 border-slate-950 border border-white/10"><span>100-120/min</span><span className="text-[8px] opacity-70">Post-Intubación</span></button>
                </div>
             </div>
           )}
@@ -791,8 +802,11 @@ export default function PalsMonitor() {
 
           {modal === 'export' && (
             <div className="bg-slate-900 border border-white/10 w-full max-w-3xl rounded-[40px] p-10 shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-500">
-              <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-5"><div className="bg-cyan-500 p-3 rounded-2xl shadow-lg shadow-cyan-500/20"><FileText className="text-white" size={28}/></div><h3 className="font-black text-white uppercase text-xl leading-none">Epicrisis Médica PALS</h3></div><button onClick={() => window.location.reload()} className="p-3 bg-slate-800 rounded-2xl text-slate-400 active:scale-90 hover:text-white transition-colors shadow-lg"><RotateCcw size={28}/></button></div>
-              <div className="bg-slate-800/40 p-5 rounded-[28px] border border-white/5 mb-6 shadow-inner text-left"><label className="block text-[9px] font-black text-slate-500 uppercase mb-2 ml-1">Identificación del Paciente</label><input type="text" value={pacienteNombre} onChange={(e) => setPacienteNombre(e.target.value)} placeholder="NOMBRE / HC..." className="w-full bg-transparent border-none text-white font-black text-lg p-1 focus:outline-none uppercase placeholder:text-slate-700 tracking-tighter" /></div>
+              <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-5"><div className="bg-cyan-500 p-3 rounded-2xl shadow-lg shadow-cyan-500/20"><FileText className="text-white" size={28}/></div><h3 className="font-black text-white uppercase text-xl leading-none">Evolución Médica PALS</h3></div><button onClick={() => window.location.reload()} className="p-3 bg-slate-800 rounded-2xl text-slate-400 active:scale-90 hover:text-white transition-colors shadow-lg"><RotateCcw size={28}/></button></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <div className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 shadow-inner text-left"><label className="block text-[9px] font-black text-slate-500 uppercase mb-2 ml-1">Nombre del Paciente</label><input type="text" value={pacienteNombre} onChange={(e) => setPacienteNombre(e.target.value)} placeholder="NOMBRE COMPLETO..." className="w-full bg-transparent border-none text-white font-black text-base p-1 focus:outline-none uppercase placeholder:text-slate-700" /></div>
+                <div className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 shadow-inner text-left"><label className="block text-[9px] font-black text-slate-500 uppercase mb-2 ml-1">Identificación / HC</label><input type="text" value={pacienteId} onChange={(e) => setPacienteId(e.target.value)} placeholder="CC / HC / ID..." className="w-full bg-transparent border-none text-white font-black text-base p-1 focus:outline-none uppercase placeholder:text-slate-700" /></div>
+              </div>
               <div className="bg-slate-950 p-8 rounded-[32px] border border-white/5 flex-1 overflow-y-auto mb-8 shadow-inner custom-scrollbar text-left"><pre className="text-[11px] font-mono text-cyan-200/70 whitespace-pre-wrap leading-relaxed tracking-tight">{generateReportText()}</pre></div>
               <div className="grid grid-cols-3 gap-4 shrink-0">
                  <button onClick={() => window.open(`whatsapp://send?text=${encodeURIComponent(generateReportText())}`, '_blank')} className="py-5 bg-emerald-600 rounded-[28px] text-white flex flex-col items-center gap-2 active:scale-95 shadow-xl transition-all"><MessageCircle size={24}/><span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span></button>

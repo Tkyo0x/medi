@@ -56,6 +56,11 @@ const CAUSAS = [
     { id: 'sarna', label: 'Escabiosis', msg: 'Sarna detectada' },
     { id: 'aislamiento', label: 'Aislamiento', msg: 'Aislamiento activo' },
   ]},
+  { id: 'acceso', nombre: 'Acceso Vascular', acciones: [
+    { id: 'cvu', label: 'CVU (Umbilical)', msg: 'Acceso venoso umbilical' },
+    { id: 'io', label: 'Intraóseo', msg: 'Acceso intraóseo establecido' },
+    { id: 'periferico', label: 'Periférico', msg: 'Acceso periférico establecido' },
+  ]},
 ]
 
 const SOPA = [
@@ -131,6 +136,7 @@ export default function NalsMonitor() {
   const [glicInput, setGlicInput] = useState('')
   const [voice, setVoice] = useState(true)
   const [result, setResult] = useState('EN CURSO')
+  const [noRetorno, setNoRetorno] = useState(false)
   const [alerts, setAlerts] = useState<{ id: number; msg: string; color: string }[]>([])
   const [tep, setTep] = useState({ apariencia: 'TÉRMINO', resp: 'ESFUERZO (+)', circ: 'TONO (+)', sim: 'SIMÉTRICO' })
   const [ritmo, setRitmo] = useState('BRADY')
@@ -146,7 +152,7 @@ export default function NalsMonitor() {
   const mRef = useRef<NodeJS.Timeout | null>(null)
 
   const w = useMemo(() => parseFloat(weightStr) || 0, [weightStr])
-  const dose = useMemo(() => { const x = Math.max(0.01, w); return { iv: (x * 0.2).toFixed(2), et: (x * 1.0).toFixed(2), bolus: (x * 10).toFixed(1) } }, [w])
+  const dose = useMemo(() => { const x = Math.max(0.01, w); return { epiLow: (x * 0.1).toFixed(2), epiHigh: (x * 0.3).toFixed(2), epiET: (x * 1.0).toFixed(2), bolus: (x * 10).toFixed(1) } }, [w])
   const min = useMemo(() => Math.floor(elapsed / 60) + 1, [elapsed])
   const spo2 = useMemo(() => (SPO2.find(t => t.min === Math.min(min, 10)) || SPO2[5]).range, [min])
   const epiLock = useMemo(() => drugs.some(d => d.nombre.includes('Adrenalina')) && epiSec < 120, [drugs, epiSec])
@@ -184,6 +190,7 @@ export default function NalsMonitor() {
   }
 
   const rce = () => { setIsActive(false); setIsChecking(false); setResult('RCE / ESTABLE'); log('RCE LOGRADO', 'SYSTEM'); say('Retorno a la circulación espontánea logrado.'); setModal('export') }
+  const noReturn = () => { setIsActive(false); setIsChecking(false); setResult('NO RETORNO / FALLECIMIENTO'); setNoRetorno(true); log('NO RETORNO - FALLECIMIENTO', 'SYSTEM'); say('No retorno a circulación espontánea. Fallecimiento.'); setModal('export') }
 
   const saveApgar = () => { const t = `${Math.floor(elapsed / 60)}'`; setApgarHist(p => [...p, { time: t, score: apgarTotal }]); log(`APGAR [${t}]: ${apgarTotal}/10`, 'TECH'); say(`Apgar: ${apgarTotal}.`); setModal(null) }
   const saveSarnat = (s: typeof SARNAT[0]) => { setSarnat(s); log(`SARNAT: ${s.stage}`, 'TECH'); say(`Sarnat: ${s.stage}.`); setModal(null) }
@@ -214,7 +221,7 @@ export default function NalsMonitor() {
   }, [isActive, isCompressing, isPaused, isChecking])
 
   const report = () => {
-    const n = new Date(); let r = `EPICRISIS REANIMACIÓN NEONATAL (v19.5)\n${'═'.repeat(56)}\n`
+    const n = new Date(); let r = `EVOLUCIÓN MÉDICA NEONATAL — EPICRISIS (v19.5)\n${'═'.repeat(56)}\n`
     r += `FECHA: ${n.toLocaleDateString()} ${n.toLocaleTimeString()}\nPACIENTE: ${nombre || 'N/R'}\nPESO: ${w.toFixed(2)} KG | EG: ${egStr || 'N/R'} SEM\nRESULTADO: ${result}\nDURACIÓN: ${Math.floor(elapsed / 60)}m ${elapsed % 60}s\n${'═'.repeat(56)}\n\n`
     r += `TRIADA: ${tep.apariencia} | ${tep.resp} | ${tep.circ}\nSIMETRÍA: ${tep.sim}\nGLICEMIA: ${glicemia ? glicemia + ' mg/dL' : 'N/R'}\n\n`
     r += `ALGORITMO NRP:\n· Pasos iniciales: ${steps.includes('A') ? 'Sí' : 'No'}\n· VPP: ${ventCount > 0 ? ventCount + ' vent.' : 'No'}\n`
@@ -459,10 +466,11 @@ export default function NalsMonitor() {
                   </div>
                 </div>
                 <div className="bg-white/[0.03] p-4 rounded-2xl border border-emerald-500/15">
-                  <div className="flex items-center gap-2 mb-3"><Syringe className="text-emerald-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Adrenalina 1:10,000</span></div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => giveDrug('Adrenalina IV', dose.iv + ' ml', 'IV')} className={`p-3.5 bg-gradient-to-b from-emerald-600 to-emerald-500 rounded-xl text-white shadow-lg shadow-emerald-600/15 ${B}`}><span className="block text-[10px] font-black uppercase mb-0.5">IV / CVU</span><span className="block text-[9px] text-emerald-100">{dose.iv} ml</span></button>
-                    <button onClick={() => giveDrug('Adrenalina ET', dose.et + ' ml', 'ET')} className={`p-3.5 bg-white/[0.04] border border-white/[0.06] rounded-xl text-white hover:bg-white/[0.06] ${B}`}><span className="block text-[10px] font-black uppercase mb-0.5">Vía ET</span><span className="block text-[9px] text-slate-400">{dose.et} ml</span></button>
+                  <div className="flex items-center gap-2 mb-3"><Syringe className="text-emerald-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Adrenalina 1:10,000 (0.01-0.03 mg/kg)</span></div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => giveDrug('Adrenalina IV/CVU', dose.epiLow + '-' + dose.epiHigh + ' ml', 'IV/CVU')} className={`p-3.5 bg-gradient-to-b from-emerald-600 to-emerald-500 rounded-xl text-white shadow-lg shadow-emerald-600/15 ${B}`}><span className="block text-[9px] font-black uppercase mb-0.5">IV / CVU</span><span className="block text-[8px] text-emerald-100">{dose.epiLow}-{dose.epiHigh} ml</span></button>
+                    <button onClick={() => giveDrug('Adrenalina IO', dose.epiLow + '-' + dose.epiHigh + ' ml', 'IO')} className={`p-3.5 bg-gradient-to-b from-blue-600 to-blue-500 rounded-xl text-white shadow-lg shadow-blue-600/15 ${B}`}><span className="block text-[9px] font-black uppercase mb-0.5">Intraóseo</span><span className="block text-[8px] text-blue-100">{dose.epiLow}-{dose.epiHigh} ml</span></button>
+                    <button onClick={() => giveDrug('Adrenalina ET', dose.epiET + ' ml', 'ET')} className={`p-3.5 bg-white/[0.04] border border-white/[0.06] rounded-xl text-white hover:bg-white/[0.06] ${B}`}><span className="block text-[9px] font-black uppercase mb-0.5">Vía ET</span><span className="block text-[8px] text-slate-400">{dose.epiET} ml</span></button>
                   </div>
                 </div>
                 <div className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
@@ -514,6 +522,7 @@ export default function NalsMonitor() {
               <p className="text-slate-500 text-[10px] font-medium mb-6">Se detendrá el registro de eventos</p>
               <div className="flex flex-col gap-2.5">
                 <button onClick={rce} className={`w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-2xl text-[11px] uppercase font-black shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 ${B}`}><HeartPulse size={15} /> RCE Logrado</button>
+                <button onClick={noReturn} className={`w-full py-3.5 bg-white/[0.04] text-slate-300 border border-white/[0.08] rounded-2xl text-[11px] uppercase font-black flex items-center justify-center gap-2 hover:bg-white/[0.06] ${B}`}><X size={15} className="text-slate-400" /> No Retorno / Fallecimiento</button>
                 <button onClick={() => { setIsActive(false); setResult('Cese de Maniobras'); setModal('export'); say('RCP finalizada.') }} className={`w-full py-3.5 bg-white/[0.04] text-red-400 border border-red-500/20 rounded-2xl text-[11px] uppercase font-black flex items-center justify-center gap-2 hover:bg-red-500/10 ${B}`}><AlertCircle size={15} /> Cese de RCP</button>
                 <button onClick={() => setModal(null)} className="text-[10px] font-bold text-slate-600 py-2 hover:text-slate-400 transition-colors">Cancelar</button>
               </div>
@@ -525,7 +534,7 @@ export default function NalsMonitor() {
               <div className="flex justify-between items-center mb-4 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><FileText className="text-blue-400" size={20} /></div>
-                  <div><h3 className="font-black text-white uppercase text-sm leading-none tracking-tight">Epicrisis</h3><span className="text-[9px] text-slate-500 font-bold">Revisión Post-Evento v19.5</span></div>
+                  <div><h3 className="font-black text-white uppercase text-sm leading-none tracking-tight">Evolución Médica</h3><span className="text-[9px] text-slate-500 font-bold">Epicrisis Neonatal v19.5</span></div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setModal(null)} className={`px-4 py-2 bg-white/[0.04] border border-white/[0.06] rounded-xl text-slate-400 text-[9px] font-black uppercase hover:text-white ${B}`}>Monitor</button>
