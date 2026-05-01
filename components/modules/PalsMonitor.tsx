@@ -398,7 +398,7 @@ export default function PalsMonitor() {
     }
     
     report += `\n3. BITÁCORA CRONOLÓGICA:\n`;
-    logs.slice().reverse().forEach(l => { report += `[+${l.elapsed}] ${l.msg}\n`; });
+    logs.slice().reverse().forEach(l => { report += `[${l.time}] (+${l.elapsed}) ${l.msg}\n`; });
     report += `\nRESULTADO FINAL: ${resultadoFinal}\n`;
     return report;
   };
@@ -582,8 +582,11 @@ export default function PalsMonitor() {
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-[10px] scrollbar-hide">
           {logs.map((l) => (
-            <div key={l.id} className="flex items-start gap-4 animate-in slide-in-from-left duration-200 text-left">
-                <span className="text-cyan-600 font-black tabular-nums shrink-0 bg-cyan-500/5 px-2 py-0.5 rounded-lg">+{l.elapsed}</span>
+            <div key={l.id} className="flex items-start gap-3 animate-in slide-in-from-left duration-200 text-left">
+                <div className="flex flex-col tabular-nums shrink-0 min-w-[52px]">
+                  <span className="text-[9px] font-bold text-slate-500">{l.time}</span>
+                  <span className="text-[10px] font-black text-cyan-500">+{l.elapsed}</span>
+                </div>
                 <span className={`uppercase font-bold tracking-tight ${l.type === 'SYSTEM' ? 'text-cyan-400' : l.type === 'TECH' ? 'text-blue-400' : l.type === 'DRUG' ? 'text-emerald-400' : l.type === 'SHOCK' ? 'text-red-400' : 'text-slate-200'}`}>{l.msg}</span>
             </div>
           ))}
