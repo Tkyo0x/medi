@@ -11,6 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider>
       <html lang="es" className="h-full antialiased">
+        <head><link rel="icon" href="/logo.png" type="image/png" /></head>
         <body className="min-h-full flex flex-col bg-white text-gray-900">{children}</body>
       </html>
     </ClerkProvider>
