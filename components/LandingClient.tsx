@@ -18,7 +18,7 @@ import AclsMonitor from '@/components/modules/AclsMonitor'
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 interface ModuleStatus { subscribed_modules: string[]; active_trials: ActiveTrial[]; all_trials: string[] }
-interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[] }
+interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[]; price?: string; duration?: string; durationUnit?: string }
 
 const BADGE: Record<string, { text: string; cls: string }> = {
   active: { text: 'Disponible', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -42,7 +42,7 @@ const CL: Record<string, { text: string; bg: string; light: string; iconBg: stri
   '#ef4444': { text: 'text-red-600', bg: 'bg-red-600', light: 'bg-red-50', iconBg: 'bg-red-100', ring: 'ring-red-200', gradient: 'from-red-500 to-red-600' },
 }
 
-export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules }: Props) {
+export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules, price = '3.00', duration = '12', durationUnit = 'months' }: Props) {
   const { isSignedIn: clerkSignedIn } = useUser()
   const isSignedIn = clerkSignedIn ?? initialSignedIn
 
@@ -103,6 +103,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   const isSubscribed = (id: string) => modStatus?.subscribed_modules?.includes(id)
   const hasTried = (id: string) => modStatus?.all_trials?.includes(id)
   const selectedMod = modules.find(m => m.id === selectedModule)
+  const durationLabel = durationUnit === 'days' ? (duration === '1' ? 'día' : 'días') : durationUnit === 'years' ? (duration === '1' ? 'año' : 'años') : (duration === '1' ? 'mes' : 'meses')
+  const priceTag = `$${price}/${duration} ${durationLabel}`
+  const priceShort = `$${price}`
 
   // ══════════════════════════════════════════════
   //  VISTA MÓDULO ACTIVO (FULLSCREEN)
