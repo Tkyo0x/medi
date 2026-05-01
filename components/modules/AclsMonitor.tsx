@@ -916,18 +916,34 @@ export default function AclsMonitor() {
       {showHemoderivadosModal && (
         <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
-            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+            <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-rose-400 tracking-widest flex items-center gap-3"><Droplets size={20}/> Hemoderivados</h3>
               <button onClick={() => setShowHemoderivadosModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
+            <p className="text-[10px] text-slate-500 font-bold mb-4">Cada toque = 1 unidad administrada</p>
             <div className="space-y-3">
-              {AGENTES_HEMODERIVADOS.map(h => (
-                <button key={h.id} onClick={() => triggerVolumeInput(h)}
-                  className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-rose-500/30 transition-all active:scale-[0.98] text-left">
-                  <div><span className="block text-xs font-black text-white">{h.nombre}</span><span className="block text-[9px] text-slate-400 mt-0.5">1 Unidad = {h.volPorUnidad} mL</span></div>
-                  <ChevronRight size={16} className="text-slate-600" />
-                </button>
-              ))}
+              {AGENTES_HEMODERIVADOS.map(h => {
+                const count = liquidosTotales.filter(l => l.id === h.id).length;
+                return (
+                  <button key={h.id} onClick={() => {
+                    const entry = { ...h, volumen: h.volPorUnidad, unidades: 1, timestamp: new Date() };
+                    setLiquidosTotales(prev => [...prev, entry]);
+                    addLog(`HEMO: ${h.corto} x1U (${h.volPorUnidad}mL)`, "DOSIS");
+                    speak(`${h.corto}, una unidad.`);
+                  }}
+                    className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-rose-500/30 transition-all active:scale-95 text-left">
+                    <div>
+                      <span className="block text-xs font-black text-white">{h.nombre}</span>
+                      <span className="block text-[9px] text-slate-400 mt-0.5">1U = {h.volPorUnidad} mL</span>
+                    </div>
+                    {count > 0 ? (
+                      <span className="text-sm font-black text-rose-400 bg-rose-500/10 px-3 py-1 rounded-xl border border-rose-500/20">x{count}U</span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-600">Tocar = 1U</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
