@@ -18,7 +18,7 @@ import AclsMonitor from '@/components/modules/AclsMonitor'
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 interface ModuleStatus { subscribed_modules: string[]; active_trials: ActiveTrial[]; all_trials: string[] }
-interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[]; price?: string; duration?: string; durationUnit?: string }
+interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[] }
 
 const BADGE: Record<string, { text: string; cls: string }> = {
   active: { text: 'Disponible', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -42,7 +42,7 @@ const CL: Record<string, { text: string; bg: string; light: string; iconBg: stri
   '#ef4444': { text: 'text-red-600', bg: 'bg-red-600', light: 'bg-red-50', iconBg: 'bg-red-100', ring: 'ring-red-200', gradient: 'from-red-500 to-red-600' },
 }
 
-export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules, price = '3.00', duration = '12', durationUnit = 'months' }: Props) {
+export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules }: Props) {
   const { isSignedIn: clerkSignedIn } = useUser()
   const isSignedIn = clerkSignedIn ?? initialSignedIn
 
@@ -103,9 +103,6 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   const isSubscribed = (id: string) => modStatus?.subscribed_modules?.includes(id)
   const hasTried = (id: string) => modStatus?.all_trials?.includes(id)
   const selectedMod = modules.find(m => m.id === selectedModule)
-  const durationLabel = durationUnit === 'days' ? (duration === '1' ? 'día' : 'días') : durationUnit === 'years' ? (duration === '1' ? 'año' : 'años') : (duration === '1' ? 'mes' : 'meses')
-  const priceTag = `$${price}/${duration} ${durationLabel}`
-  const priceShort = `$${price}`
 
   // ══════════════════════════════════════════════
   //  VISTA MÓDULO ACTIVO (FULLSCREEN)
@@ -162,7 +159,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
 
       {/* ━━━ NAVBAR ━━━ */}
       <nav className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/85 backdrop-blur-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05)] border-b border-slate-100' : 'bg-white border-b border-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-5 lg:px-10 flex items-center justify-between h-[60px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-10 flex items-center justify-between h-[52px] sm:h-[60px]">
           <div className="flex items-center gap-2.5 cursor-pointer select-none" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
               <Heart className="w-4 h-4 text-white" strokeWidth={2.5} />
@@ -179,8 +176,8 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
           <div className="flex items-center gap-2">
             {isSignedIn ? (
               <div className="flex items-center gap-3">
-                <a href="/panel" className="inline-flex items-center gap-1.5 bg-teal-600 text-white px-4 py-2 rounded-xl hover:bg-teal-500 transition-all font-bold text-[13px] shadow-sm active:scale-[0.97]">
-                  Mi Panel <ArrowRight className="w-3.5 h-3.5" />
+                <a href="/panel" className="inline-flex items-center gap-1 sm:gap-1.5 bg-teal-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl hover:bg-teal-500 transition-all font-bold text-[12px] sm:text-[13px] shadow-sm active:scale-[0.97]">
+                  Panel <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </a>
                 {modStatus && modStatus.subscribed_modules.length > 0 && (
                   <span className="hidden sm:inline-flex text-[10px] font-black px-2.5 py-1 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 text-white uppercase tracking-widest shadow-sm shadow-teal-500/20">
@@ -223,16 +220,16 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
         <div className="absolute bottom-20 left-10 w-64 h-64 bg-rose-50/30 blur-[80px] rounded-full pointer-events-none" />
         <div className="absolute top-40 left-1/3 w-32 h-32 bg-violet-50/20 blur-[60px] rounded-full pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-10 pt-14 pb-8 lg:pt-20 lg:pb-12 relative">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-10 pt-8 pb-6 sm:pt-14 sm:pb-8 lg:pt-20 lg:pb-12 relative">
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
 
             {/* ← TEXT */}
             <div className="flex-1 max-w-xl text-center lg:text-left z-10">
-              <span className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200/80 rounded-full px-3.5 py-1.5 text-[11px] font-bold text-teal-700 mb-6 anim-rise uppercase tracking-wider">
+              <span className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200/80 rounded-full px-3 py-1 text-[10px] sm:text-[11px] font-bold text-teal-700 mb-4 sm:mb-6 anim-rise uppercase tracking-wider">
                 <Heart className="w-3 h-3 anim-heartbeat" /> Software médico profesional
               </span>
 
-              <h1 className="text-[2.25rem] sm:text-[2.75rem] lg:text-[3.25rem] font-black text-slate-900 leading-[1.08] mb-5 anim-rise d1 tracking-tight">
+              <h1 className="text-[1.75rem] sm:text-[2.5rem] lg:text-[3.25rem] font-black text-slate-900 leading-[1.1] mb-4 anim-rise d1 tracking-tight">
                 Cuando cada segundo cuenta,{' '}
                 <span className="relative inline-block pb-4">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-500 to-teal-600">tu herramienta importa</span>
@@ -244,21 +241,21 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 </span>
               </h1>
 
-              <p className="text-[15px] sm:text-base text-slate-500 font-medium leading-relaxed mb-6 anim-rise d2">
+              <p className="text-sm sm:text-[15px] text-slate-500 font-medium leading-relaxed mb-5 anim-rise d2">
                 Cronómetros de reanimación, escalas APGAR, dosis por peso, epicrisis por WhatsApp.{' '}
                 <span className="text-slate-800 font-bold">Todo funciona offline en quirófano.</span>
               </p>
 
-              <div className="flex flex-wrap items-center gap-3 mb-6 anim-rise d3 justify-center lg:justify-start">
-                <a href="#modules" className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl hover:bg-teal-500 transition-all font-bold text-sm shadow-xl shadow-teal-600/20 active:scale-[0.97] group">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mb-5 anim-rise d3 justify-center lg:justify-start">
+                <a href="#modules" className="inline-flex items-center justify-center gap-2 bg-teal-600 text-white px-5 py-3 rounded-xl hover:bg-teal-500 transition-all font-bold text-sm shadow-xl shadow-teal-600/20 active:scale-[0.97] group">
                   Ver módulos clínicos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </a>
-                <a href="#pricing" className="inline-flex items-center gap-2 bg-white text-slate-700 px-6 py-3 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm">
+                <a href="#pricing" className="inline-flex items-center justify-center gap-2 bg-white text-slate-700 px-5 py-3 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm">
                   $3/módulo/año
                 </a>
               </div>
 
-              <div className="flex flex-wrap gap-4 anim-rise d4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 anim-rise d4 items-center lg:items-start">
                 {[
                   { icon: <WifiOff className="w-3.5 h-3.5" />, t: 'Offline en quirófano' },
                   { icon: <MessageCircle className="w-3.5 h-3.5" />, t: 'Exporta por WhatsApp' },
@@ -269,8 +266,8 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               </div>
             </div>
 
-            {/* → MOCKUP */}
-            <div className="flex-1 max-w-md w-full anim-rise d3">
+            {/* → HERO VISUAL — hidden on mobile */}
+            <div className="hidden lg:block flex-1 max-w-md w-full anim-rise d3">
   <div className="relative">
     {/* Glow background - sutil pero presente */}
     <div className="absolute -inset-6 bg-gradient-to-br from-teal-100/40 via-cyan-100/30 to-blue-100/40 rounded-[3rem] blur-2xl pointer-events-none" />
@@ -409,16 +406,16 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
 
       {/* ━━━ TRUST METRICS ━━━ */}
       <section className="border-y border-slate-100 bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-100">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: <Activity className="w-5 h-5 text-teal-600" />, v: '6+', l: 'Módulos clínicos' },
-            { icon: <Shield className="w-5 h-5 text-blue-600" />, v: 'NRP 2025', l: 'Protocolos vigentes' },
-            { icon: <WifiOff className="w-5 h-5 text-rose-500" />, v: '100%', l: 'Operativo offline' },
-            { icon: <Lock className="w-5 h-5 text-emerald-600" />, v: 'Local', l: 'Datos en tu dispositivo' },
+            { icon: <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600" />, v: '6+', l: 'Módulos' },
+            { icon: <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />, v: 'NRP 2025', l: 'Protocolos' },
+            { icon: <WifiOff className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500" />, v: '100%', l: 'Offline' },
+            { icon: <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />, v: 'Local', l: 'Datos seguros' },
           ].map((s, i) => (
-            <div key={i} className="py-4 sm:py-6 px-4 sm:px-5 flex items-center gap-3 hover:bg-slate-50/50 transition-colors">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0 shadow-sm">{s.icon}</div>
-              <div><div className="text-base sm:text-lg font-black text-slate-900 leading-tight">{s.v}</div><div className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wide">{s.l}</div></div>
+            <div key={i} className="py-3.5 sm:py-5 px-3 sm:px-5 flex items-center gap-2.5 sm:gap-3 border-b sm:border-b-0 border-r border-slate-100 last:border-r-0 [&:nth-child(2)]:border-r-0 sm:[&:nth-child(2)]:border-r">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0">{s.icon}</div>
+              <div><div className="text-sm sm:text-lg font-black text-slate-900 leading-tight">{s.v}</div><div className="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wide">{s.l}</div></div>
             </div>
           ))}
         </div>
@@ -454,8 +451,8 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-10 sm:mb-14">
             <span className="inline-block bg-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-white/10 mb-4 sm:mb-5">Casos de Uso</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-3">Construido para el momento crítico</h2>
-            <p className="text-sm text-slate-400 font-medium">Tres escenarios clínicos reales, tres herramientas que responden al instante.</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-2 sm:mb-3">Construido para el momento crítico</h2>
+            <p className="text-xs sm:text-sm text-slate-400 font-medium">Tres escenarios clínicos reales, tres herramientas que responden al instante.</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
             {[
@@ -485,7 +482,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               <span className="inline-flex items-center gap-1.5 bg-teal-100 text-teal-800 text-[11px] font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full mb-4">
                 <Sparkles className="w-3 h-3" /> Catálogo Clínico
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Un módulo para cada flujo crítico</h2>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 mb-2">Un módulo para cada flujo crítico</h2>
               <p className="text-sm sm:text-base text-slate-500 font-medium">$3 USD/año por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
             </div>
             <div className="text-sm font-bold text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
@@ -570,7 +567,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-teal-200 mb-5">
               <Sparkles className="w-3 h-3" /> Precio transparente
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3 tracking-tight">Paga solo lo que realmente usas.</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight">Paga solo lo que realmente usas.</h2>
             <p className="text-base text-slate-500 font-medium max-w-lg mx-auto">Cada módulo es independiente. Sin paquetes forzados, sin letra chica.</p>
           </div>
 
@@ -727,9 +724,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               Ver precios <ChevronRight className="w-4 h-4" />
             </a>
           </div>
-          <div className="flex items-center justify-center gap-5 mt-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-5 mt-6 sm:mt-8">
             {['Sin tarjeta', '72h gratis', 'Offline'].map((t, i) => (
-              <span key={i} className="flex items-center gap-1.5 text-[11px] font-bold text-white/40">
+              <span key={i} className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] font-bold text-white/40">
                 <CheckCircle2 className="w-3 h-3 text-white/30" />{t}
               </span>
             ))}
@@ -760,8 +757,8 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
           </div>
 
           {/* Links grid */}
-          <div className="py-12 grid grid-cols-2 sm:grid-cols-12 gap-10">
-            <div className="col-span-2 sm:col-span-4">
+          <div className="py-8 sm:py-12 grid grid-cols-1 sm:grid-cols-12 gap-8 sm:gap-10">
+            <div className="sm:col-span-4">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-sm shadow-teal-500/20">
                   <Heart className="w-4 h-4 text-white" strokeWidth={2.5} />
