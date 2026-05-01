@@ -564,7 +564,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
       <aside className={`fixed md:relative z-40 h-full w-[260px] bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-out ${sidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-4 pb-3 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/')}>
-            <img src="/logo.png" alt="MediCore" className="w-8 h-8 rounded-lg object-contain" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-sm shadow-teal-500/20"><Heart className="w-4 h-4 text-white" strokeWidth={2.5} /></div>
             <span className="text-base font-black tracking-tight text-slate-900">Medi<span className="text-teal-600">Core</span></span>
           </div>
           <button onClick={() => setSidebar(false)} className="md:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>

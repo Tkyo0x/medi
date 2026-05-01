@@ -164,7 +164,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       <nav className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/85 backdrop-blur-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05)] border-b border-slate-100' : 'bg-white border-b border-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-10 flex items-center justify-between h-[52px] sm:h-[60px]">
           <div className="flex items-center gap-2.5 cursor-pointer select-none" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img src="/logo.png" alt="MediCore" className="w-8 h-8 rounded-lg object-contain" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
+              <Heart className="w-4 h-4 text-white" strokeWidth={2.5} />
+            </div>
             <span className="text-lg font-black tracking-tight text-slate-900">Medi<span className="text-teal-600">Core</span></span>
           </div>
 
@@ -761,7 +763,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
           <div className="py-8 sm:py-12 grid grid-cols-1 sm:grid-cols-12 gap-8 sm:gap-10">
             <div className="sm:col-span-4">
               <div className="flex items-center gap-2.5 mb-4">
-                <img src="/logo.png" alt="MediCore" className="w-9 h-9 rounded-xl object-contain" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-sm shadow-teal-500/20">
+                  <Heart className="w-4 h-4 text-white" strokeWidth={2.5} />
+                </div>
                 <span className="font-black text-lg tracking-tight text-slate-900">Medi<span className="text-teal-600">Core</span></span>
               </div>
               <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xs mb-5">Software clínico profesional para equipos de neonatología y cuidado crítico pediátrico.</p>
