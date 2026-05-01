@@ -7,7 +7,7 @@ import {
   TrendingUp, ClipboardList, Droplet,
   Biohazard, CircleDot, ArrowDownToLine, 
   Wind, FlaskConical, Stethoscope, Thermometer,
-  Pill, Copy, RotateCcw, AlertTriangle
+  Pill, Copy, RotateCcw, AlertTriangle, FileText
 } from 'lucide-react';
 
 /**
@@ -181,6 +181,7 @@ export default function AclsMonitor() {
   // Modals Visibility
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [reportTab, setReportTab] = useState('resumen');
   const [showH5TModal, setShowH5TModal] = useState(false);
   const [showGlucemiaModal, setShowGlucemiaModal] = useState(false);
   const [showLiquidosModal, setShowLiquidosModal] = useState(false);
@@ -397,6 +398,35 @@ export default function AclsMonitor() {
            `\nBITÁCORA CRONOLÓGICA:\n` +
            `${[...logs].reverse().map(l => `[${l.time}] ${l.msg}`).join('\n')}`;
   };
+
+  const evolucionAcls = () => {
+    const totalMin = Math.floor(elapsedSeconds / 60), totalSec = elapsedSeconds % 60
+    let e = `Se atiende código azul. Paciente: ${pacienteNombre || 'sin identificar'}.`
+    e += ` Ritmo cardíaco inicial: ${(RITMOS as any)[ritmoActual]?.nombre || ritmoActual}.`
+    e += ` Se inician maniobras de reanimación cardiopulmonar avanzada (ACLS) con compresiones torácicas de alta calidad a 100-120 compresiones/minuto.`
+    if (desfibrilaciones > 0) e += ` Se identifican ritmos desfibrilables, realizándose ${desfibrilaciones} descarga${desfibrilaciones > 1 ? 's' : ''} eléctrica${desfibrilaciones > 1 ? 's' : ''}.`
+    if (adrenalinas > 0) e += ` Se administra${adrenalinas > 1 ? 'n' : ''} ${adrenalinas} dosis de adrenalina 1mg IV/IO.`
+    if (bicarbonatos > 0) e += ` Se administra bicarbonato de sodio.`
+    if (totSize) e += ` Se asegura vía aérea avanzada con tubo endotraqueal #${totSize}.`
+    if (vasopresores.length > 0) e += ` Soporte vasopresor iniciado: ${vasopresores.join(', ')}.`
+    const totalVol = liquidosTotales.reduce((a, c) => a + (c.volumen || 0), 0)
+    if (totalVol > 0) e += ` Volumen total administrado: ${totalVol} mL.`
+    const hemos = liquidosTotales.filter(l => l.unidades)
+    if (hemos.length > 0) {
+      const hemoCounts: Record<string, number> = {}
+      hemos.forEach(h => { hemoCounts[h.corto] = (hemoCounts[h.corto] || 0) + 1 })
+      e += ` Hemoderivados transfundidos: ${Object.entries(hemoCounts).map(([k, v]) => `${k} x${v}U`).join(', ')}.`
+    }
+    const drugLogs = logs.filter(l => l.type === 'DOSIS').map(l => l.msg)
+    if (drugLogs.length > 0) e += ` Intervenciones farmacológicas registradas: ${drugLogs.join('; ')}.`
+    e += `\n\nTiempo total de intervención: ${totalMin} minutos con ${totalSec} segundos.`
+    e += ` Desenlace: ${resultadoFinal || 'en curso'}.`
+    if (resultadoFinal?.includes('ROSC') || resultadoFinal?.includes('RCE') || resultadoFinal?.includes('SUPERVIVENCIA')) e += ` Se logra retorno a circulación espontánea (ROSC). Se indica monitoreo hemodinámico invasivo, control de temperatura dirigida, valoración neurológica y cuidados post-paro cardíaco según protocolo institucional.`
+    else if (resultadoFinal?.includes('CESE') || resultadoFinal?.includes('FALLECIMIENTO')) e += ` A pesar de maniobras de reanimación avanzada sostenidas durante ${totalMin} minutos, no se logra retorno a circulación espontánea. Se declara fallecimiento y se comunica a familiares.`
+    return e
+  }
+
+  const fullReportAcls = () => generateReport() + `\n\n${'═'.repeat(56)}\nEVOLUCIÓN MÉDICA NARRATIVA:\n${'─'.repeat(56)}\n${evolucionAcls()}\n`
 
   // --- EFFECTS ---
   useEffect(() => {
@@ -966,29 +996,47 @@ export default function AclsMonitor() {
       {/* REPORT MODAL */}
       {showExportModal && (
         <div className="fixed inset-0 z-[1200] bg-black/95 flex flex-col items-center p-4 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-xl bg-white rounded-[50px] p-8 flex flex-col h-full text-black shadow-2xl animate-in slide-in-from-bottom-12 overflow-hidden">
-            <div className="flex justify-between items-center mb-8 shrink-0">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-indigo-100 rounded-2xl text-indigo-600"><ClipboardList size={28}/></div>
-                <h2 className="text-2xl font-black uppercase tracking-tighter">Bitácora Médica</h2>
+          <div className="w-full max-w-xl bg-slate-900 border border-white/10 rounded-[40px] p-6 flex flex-col h-full max-h-[90vh] shadow-2xl animate-in slide-in-from-bottom-12 overflow-hidden">
+            <div className="flex justify-between items-center mb-5 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl text-indigo-400"><ClipboardList size={22}/></div>
+                <h2 className="text-base font-black uppercase tracking-tight text-white">Evolución Médica ACLS</h2>
               </div>
-              <button onClick={() => setShowExportModal(false)} className="bg-slate-100 p-3 rounded-full text-slate-400 hover:text-black transition-colors"><XCircle size={28} /></button>
+              <button onClick={() => setShowExportModal(false)} className="bg-slate-800 p-2 rounded-full text-slate-400"><XCircle size={22} /></button>
+            </div>
+
+            <div className="flex gap-1.5 mb-4 shrink-0">
+              {['resumen', 'evolucion', 'bitacora'].map(t => (
+                <button key={t} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
+                  {t === 'resumen' ? 'Resumen' : t === 'evolucion' ? 'Evolución' : 'Bitácora'}
+                </button>
+              ))}
             </div>
             
-            <div className="flex-1 overflow-y-auto bg-slate-50 border-2 border-slate-100 rounded-[40px] p-8 font-mono text-xs mb-8 shadow-inner whitespace-pre-wrap leading-relaxed text-slate-800">
-              {generateReport()}
+            <div className="flex-1 overflow-y-auto bg-slate-950 border border-white/5 rounded-[20px] p-5 mb-5 shadow-inner scrollbar-hide text-left">
+              {reportTab === 'resumen' && <pre className="text-[10px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">{generateReport()}</pre>}
+              {reportTab === 'evolucion' && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3"><FileText className="w-4 h-4 text-indigo-400" /><span className="text-xs font-black text-indigo-400 uppercase">Evolución Médica Narrativa</span></div>
+                  <p className="text-[11px] text-slate-200/80 leading-[1.8] font-medium">{evolucionAcls()}</p>
+                  <button onClick={() => { const el = document.createElement('textarea'); el.value = evolucionAcls(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="mt-4 w-full py-2.5 bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95">{copied ? <Check size={14}/> : <Copy size={14}/>} {copied ? '¡Copiado!' : 'Copiar evolución'}</button>
+                </div>
+              )}
+              {reportTab === 'bitacora' && (
+                <div className="space-y-1.5">{[...logs].reverse().map((l, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-[9px] font-bold text-slate-500 tabular-nums shrink-0 w-[50px]">{l.time}</span>
+                    <span className={`uppercase font-bold text-[10px] ${l.type === 'DOSIS' ? 'text-emerald-400' : l.type === 'SHOCK' ? 'text-red-400' : l.type === 'SUCCESS' ? 'text-blue-400' : l.type === 'SYSTEM' ? 'text-amber-400' : 'text-slate-300'}`}>{l.msg}</span>
+                  </div>
+                ))}</div>
+              )}
             </div>
             
-            <div className="grid grid-cols-2 gap-4 shrink-0">
-                <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(generateReport())}`, '_blank')} className="h-16 bg-emerald-600 border-b-4 border-emerald-800 text-white rounded-[32px] font-black uppercase text-[12px] flex items-center justify-center gap-2 active:scale-95 shadow-lg"><MessageCircle size={20}/> WhatsApp</button>
-                <button onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&body=${encodeURIComponent(generateReport())}`, '_blank')} className="h-16 bg-slate-900 border-b-4 border-black text-white rounded-[32px] font-black uppercase text-[12px] flex items-center justify-center gap-2 active:scale-95 shadow-lg"><Mail size={20}/> Email</button>
+            <div className="grid grid-cols-3 gap-2.5 shrink-0">
+                <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(fullReportAcls())}`, '_blank')} className="py-3.5 bg-emerald-600 rounded-2xl text-white flex flex-col items-center gap-1 active:scale-95 shadow-lg font-black"><MessageCircle size={18}/><span className="text-[8px] uppercase">WhatsApp</span></button>
+                <button onClick={() => window.open(`mailto:?subject=ACLS%20Evolucion&body=${encodeURIComponent(fullReportAcls())}`, '_blank')} className="py-3.5 bg-slate-800 border border-white/5 rounded-2xl text-white flex flex-col items-center gap-1 active:scale-95 shadow-lg font-black"><Mail size={18}/><span className="text-[8px] uppercase">Email</span></button>
+                <button onClick={() => { const el = document.createElement('textarea'); el.value = fullReportAcls(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="py-3.5 bg-slate-800 border border-white/5 rounded-2xl text-slate-300 flex flex-col items-center gap-1 active:scale-95 shadow-lg font-black">{copied ? <Check size={18}/> : <Copy size={18}/>}<span className="text-[8px] uppercase">{copied ? '¡Copiado!' : 'Copiar'}</span></button>
             </div>
-            <button onClick={() => {
-                const el = document.createElement('textarea'); el.value = generateReport(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-                setCopied(true); setTimeout(() => setCopied(false), 2000);
-            }} className="w-full mt-6 flex items-center justify-center gap-2 text-indigo-600 font-black uppercase text-[11px]">
-              {copied ? <Check size={18}/> : <Copy size={18}/>} {copied ? '¡Copiado!' : 'Copiar Reporte'}
-            </button>
           </div>
         </div>
       )}

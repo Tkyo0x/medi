@@ -197,6 +197,7 @@ export default function PalsMonitor() {
   const [ritmoActual, setRitmoActual] = useState('ASYSTOLE');
   const [logs, setLogs] = useState<any[]>([]);
   const [modal, setModal] = useState<string | null>(null); 
+  const [reportTab, setReportTab] = useState('resumen');
   const [compresionCount, setCompresionCount] = useState(0);
   const [ventilacionCount, setVentilacionCount] = useState(0);
   const [bpmTarget, setBpmTarget] = useState(110);
@@ -402,6 +403,31 @@ export default function PalsMonitor() {
     report += `\nRESULTADO FINAL: ${resultadoFinal}\n`;
     return report;
   };
+
+  const evolucionPals = () => {
+    const totalMin = Math.floor(elapsedSeconds / 60), totalSec = elapsedSeconds % 60
+    const techObj = TECNICAS_RCP.find(t => t.id === tecnicaRCP)
+    let e = `Se atiende código azul pediátrico. Paciente de ${edad} ${edadUnidad}, peso ${weight} kg.`
+    e += ` Ritmo cardíaco inicial identificado: ${(RITMOS as any)[ritmoActual]?.nombre || ritmoActual}.`
+    e += ` Se inician maniobras de reanimación cardiopulmonar avanzada con técnica ${techObj?.nombre || mode}`
+    e += mode === 'CONTINUA' ? `, compresiones continuas a 100-120/minuto (vía aérea avanzada asegurada).` : ` en modalidad ${mode} (compresiones:ventilaciones).`
+    if (desfibrilaciones > 0) e += ` Se realizan ${desfibrilaciones} descarga${desfibrilaciones > 1 ? 's' : ''} eléctrica${desfibrilaciones > 1 ? 's' : ''} a ${doses.shock}J (${doses.jkg} J/kg).`
+    if (adrenalinas > 0) e += ` Se administra${adrenalinas > 1 ? 'n' : ''} ${adrenalinas} dosis de adrenalina (${doses.epiIV} mg IV).`
+    if (totInfo.size) e += ` Se asegura vía aérea avanzada con tubo endotraqueal #${totInfo.size} ${totInfo.tipo === 'CUFFED' ? 'con balón' : 'sin balón'}.`
+    if (accesosObtenidos.length > 0) e += ` Accesos vasculares obtenidos: ${accesosObtenidos.map(a => `${a.nombre} (${a.tipo})`).join(', ')}.`
+    if (glucemia !== null) e += ` Control de glicemia: ${glucemia} mg/dL${glucemia < 60 ? ' (hipoglicemia — se indica corrección)' : ''}.`
+    const tratadas = CAUSAS_PALS_DATA.flatMap(c => c.manejos).filter(m => causasRealizadas.includes(m.id))
+    if (tratadas.length > 0) e += ` Causas reversibles identificadas y tratadas: ${tratadas.map(m => m.label).join(', ')}.`
+    const drogasAdmin = logs.filter(l => l.type === 'DRUG' || l.type === 'DOSIS').map(l => l.msg)
+    if (drogasAdmin.length > 0) e += ` Registro farmacológico: ${drogasAdmin.join('; ')}.`
+    e += `\n\nTiempo total de intervención: ${totalMin} minutos con ${totalSec} segundos.`
+    e += ` Desenlace: ${resultadoFinal || 'en curso'}.`
+    if (resultadoFinal.includes('ROSC') || resultadoFinal.includes('RCE')) e += ` Se logra retorno a circulación espontánea (ROSC). Se indica monitoreo hemodinámico continuo, vigilancia neurológica y cuidados post-paro según protocolo institucional.`
+    else if (resultadoFinal.includes('CESE') || resultadoFinal.includes('FALLECIMIENTO')) e += ` A pesar de maniobras de reanimación avanzada sostenidas, no se logra retorno a circulación espontánea. Se comunica desenlace a familia y se procede según protocolo institucional.`
+    return e
+  }
+
+  const fullReportPals = () => generateReportText() + `\n======================================================================\nEVOLUCIÓN MÉDICA NARRATIVA:\n----------------------------------------------------------------------\n${evolucionPals()}\n`
 
   useEffect(() => {
     if (isActive && !isPaused) {
@@ -804,17 +830,41 @@ export default function PalsMonitor() {
           )}
 
           {modal === 'export' && (
-            <div className="bg-slate-900 border border-white/10 w-full max-w-3xl rounded-[40px] p-10 shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-500">
-              <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-5"><div className="bg-cyan-500 p-3 rounded-2xl shadow-lg shadow-cyan-500/20"><FileText className="text-white" size={28}/></div><h3 className="font-black text-white uppercase text-xl leading-none">Evolución Médica PALS</h3></div><button onClick={() => window.location.reload()} className="p-3 bg-slate-800 rounded-2xl text-slate-400 active:scale-90 hover:text-white transition-colors shadow-lg"><RotateCcw size={28}/></button></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                <div className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 shadow-inner text-left"><label className="block text-[9px] font-black text-slate-500 uppercase mb-2 ml-1">Nombre del Paciente</label><input type="text" value={pacienteNombre} onChange={(e) => setPacienteNombre(e.target.value)} placeholder="NOMBRE COMPLETO..." className="w-full bg-transparent border-none text-white font-black text-base p-1 focus:outline-none uppercase placeholder:text-slate-700" /></div>
-                <div className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 shadow-inner text-left"><label className="block text-[9px] font-black text-slate-500 uppercase mb-2 ml-1">Identificación / HC</label><input type="text" value={pacienteId} onChange={(e) => setPacienteId(e.target.value)} placeholder="CC / HC / ID..." className="w-full bg-transparent border-none text-white font-black text-base p-1 focus:outline-none uppercase placeholder:text-slate-700" /></div>
+            <div className="bg-slate-900 border border-white/10 w-full max-w-3xl rounded-[40px] p-6 sm:p-8 shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-500">
+              <div className="flex justify-between items-center mb-5 shrink-0"><div className="flex items-center gap-4"><div className="bg-cyan-500 p-2.5 rounded-2xl shadow-lg shadow-cyan-500/20"><FileText className="text-white" size={22}/></div><h3 className="font-black text-white uppercase text-base leading-none">Evolución Médica PALS</h3></div><button onClick={() => window.location.reload()} className="p-2.5 bg-slate-800 rounded-2xl text-slate-400 active:scale-90"><RotateCcw size={20}/></button></div>
+              <div className="grid grid-cols-2 gap-2 mb-4 shrink-0">
+                <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-left"><label className="block text-[8px] font-black text-slate-500 uppercase mb-1">Paciente</label><input type="text" value={pacienteNombre} onChange={(e) => setPacienteNombre(e.target.value)} placeholder="NOMBRE..." className="w-full bg-transparent border-none text-white font-black text-sm p-0 focus:outline-none uppercase placeholder:text-slate-700" /></div>
+                <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-left"><label className="block text-[8px] font-black text-slate-500 uppercase mb-1">ID / HC</label><input type="text" value={pacienteId} onChange={(e) => setPacienteId(e.target.value)} placeholder="CC / HC..." className="w-full bg-transparent border-none text-white font-black text-sm p-0 focus:outline-none uppercase placeholder:text-slate-700" /></div>
               </div>
-              <div className="bg-slate-950 p-8 rounded-[32px] border border-white/5 flex-1 overflow-y-auto mb-8 shadow-inner custom-scrollbar text-left"><pre className="text-[11px] font-mono text-cyan-200/70 whitespace-pre-wrap leading-relaxed tracking-tight">{generateReportText()}</pre></div>
-              <div className="grid grid-cols-3 gap-4 shrink-0">
-                 <button onClick={() => window.open(`whatsapp://send?text=${encodeURIComponent(generateReportText())}`, '_blank')} className="py-5 bg-emerald-600 rounded-[28px] text-white flex flex-col items-center gap-2 active:scale-95 shadow-xl transition-all"><MessageCircle size={24}/><span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span></button>
-                 <button onClick={() => window.open(`mailto:?subject=PALS-${pacienteNombre}&body=${encodeURIComponent(generateReportText())}`, '_blank')} className="py-5 bg-indigo-600 rounded-[28px] text-white flex flex-col items-center gap-2 active:scale-95 shadow-xl transition-all"><Mail size={24}/><span className="text-[10px] font-black uppercase tracking-widest">Email</span></button>
-                 <button onClick={() => { const el = document.createElement('textarea'); el.value = generateReportText(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); triggerHaptic(100); }} className="py-5 bg-slate-800 rounded-[28px] text-slate-300 flex flex-col items-center gap-2 active:scale-95 border border-white/5 transition-all shadow-xl"><Copy size={24}/><span className="text-[10px] font-black uppercase tracking-widest">Copiar</span></button>
+              <div className="flex gap-1.5 mb-4 shrink-0">
+                {['resumen', 'evolucion', 'bitacora'].map(t => (
+                  <button key={t} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-cyan-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
+                    {t === 'resumen' ? 'Resumen' : t === 'evolucion' ? 'Evolución' : 'Bitácora'}
+                  </button>
+                ))}
+              </div>
+              <div className="bg-slate-950 p-5 rounded-[20px] border border-white/5 flex-1 overflow-y-auto mb-5 shadow-inner text-left scrollbar-hide">
+                {reportTab === 'resumen' && <pre className="text-[10px] font-mono text-cyan-200/70 whitespace-pre-wrap leading-relaxed">{generateReportText()}</pre>}
+                {reportTab === 'evolucion' && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3"><FileText className="w-4 h-4 text-cyan-400" /><span className="text-xs font-black text-cyan-400 uppercase">Evolución Médica Narrativa</span></div>
+                    <p className="text-[11px] text-cyan-100/80 leading-[1.8] font-medium">{evolucionPals()}</p>
+                    <button onClick={() => { const el = document.createElement('textarea'); el.value = evolucionPals(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); triggerHaptic(100); }} className="mt-4 w-full py-2.5 bg-cyan-600/20 border border-cyan-500/20 text-cyan-400 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95"><Copy size={14} /> Copiar evolución</button>
+                  </div>
+                )}
+                {reportTab === 'bitacora' && (
+                  <div className="space-y-1.5">{logs.map((l) => (
+                    <div key={l.id} className="flex items-start gap-3 text-left">
+                      <div className="flex flex-col tabular-nums shrink-0 min-w-[52px]"><span className="text-[9px] font-bold text-slate-500">{l.time}</span><span className="text-[10px] font-black text-cyan-500">+{l.elapsed}</span></div>
+                      <span className={`uppercase font-bold tracking-tight text-[10px] ${l.type === 'SYSTEM' ? 'text-cyan-400' : l.type === 'DRUG' ? 'text-emerald-400' : l.type === 'SHOCK' ? 'text-red-400' : 'text-slate-300'}`}>{l.msg}</span>
+                    </div>
+                  ))}</div>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2.5 shrink-0">
+                 <button onClick={() => window.open(`whatsapp://send?text=${encodeURIComponent(fullReportPals())}`, '_blank')} className="py-3.5 bg-emerald-600 rounded-2xl text-white flex flex-col items-center gap-1 active:scale-95 shadow-xl"><MessageCircle size={18}/><span className="text-[9px] font-black uppercase">WhatsApp</span></button>
+                 <button onClick={() => window.open(`mailto:?subject=PALS-${pacienteNombre}&body=${encodeURIComponent(fullReportPals())}`, '_blank')} className="py-3.5 bg-indigo-600 rounded-2xl text-white flex flex-col items-center gap-1 active:scale-95 shadow-xl"><Mail size={18}/><span className="text-[9px] font-black uppercase">Email</span></button>
+                 <button onClick={() => { const el = document.createElement('textarea'); el.value = fullReportPals(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); triggerHaptic(100); }} className="py-3.5 bg-slate-800 rounded-2xl text-slate-300 flex flex-col items-center gap-1 active:scale-95 border border-white/5 shadow-xl"><Copy size={18}/><span className="text-[9px] font-black uppercase">Copiar</span></button>
               </div>
             </div>
           )}

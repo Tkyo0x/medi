@@ -235,7 +235,35 @@ export default function NalsMonitor() {
     return r
   }
 
-  const copy = () => { navigator.clipboard.writeText(report()).then(() => alert('Copiado', 'bg-emerald-600')).catch(() => {}) }
+  const copy = () => { navigator.clipboard.writeText(fullReport()).then(() => alert('Copiado', 'bg-emerald-600')).catch(() => {}) }
+
+  const evolucion = () => {
+    const totalMin = Math.floor(elapsed / 60), totalSec = elapsed % 60
+    let e = `Se atiende código azul neonatal.`
+    e += ` ${tep.apariencia === 'PRETERMO' ? 'Recién nacido pretérmino' : 'Recién nacido a término'}`
+    e += ` de ${egStr || 'N/R'} semanas de edad gestacional, peso ${w.toFixed(2)} kg.`
+    if (tep.resp !== 'ESFUERZO (+)') e += ` Patrón respiratorio: ${tep.resp.toLowerCase()}.`
+    if (tep.circ === 'FLÁCIDO') e += ` Tono muscular: flácido al nacer.`
+    if (tep.sim === 'ASIMÉTRICO') e += ` Se evidencia asimetría torácica.`
+    if (steps.includes('A')) e += ` Se realizan pasos iniciales de reanimación neonatal (calentamiento, secado, estimulación táctil, posicionamiento de vía aérea).`
+    if (ventCount > 0) e += ` Se inicia ventilación a presión positiva (VPP), administrándose ${ventCount} ventilaciones.`
+    if (sopa.length > 0) e += ` Se aplican correctivos ventilatorios MR. SOPA (${sopa.join(', ')}).`
+    if (compCount > 0) e += ` Ante persistencia de bradicardia (FC < 60 lpm), se inician compresiones torácicas coordinadas con ventilación en relación 3:1 (100-120 compresiones/minuto según guías AHA 2025), completándose ${Math.floor(compCount / 4)} ciclos.`
+    if (drugs.length > 0) { e += ` Farmacología administrada:`; drugs.forEach(d => { e += ` ${d.nombre} ${d.dosis} vía ${d.via} (${d.time}).` }) }
+    if (fluids.length > 0) { e += ` Líquidos administrados:`; fluids.forEach(f => { e += ` ${f.nombre} ${f.volumen}ml (${f.time}).` }) }
+    if (gasHist.length > 0) { e += ` Control gasimétrico:`; gasHist.forEach(g => { e += ` pH ${g.ph}, pCO2 ${g.pco2}, pO2 ${g.po2}, HCO3 ${g.hco3}, EB ${g.eb}, Lactato ${g.lac} (${g.time}).` }) }
+    if (apgarHist.length > 0) e += ` Puntuación APGAR: ${apgarHist.map(h => `${h.score}/10 al minuto ${h.time}`).join(', ')}.`
+    if (sarnat) e += ` Clasificación de encefalopatía hipóxico-isquémica según Sarnat: ${sarnat.stage}.`
+    if (glicemia !== null) e += ` Glicemia capilar: ${glicemia} mg/dL.`
+    e += `\n\nTiempo total de intervención: ${totalMin} minutos con ${totalSec} segundos.`
+    e += ` Desenlace: ${result}.`
+    if (result.includes('RCE')) e += ` Se logra retorno a la circulación espontánea. Se indica monitoreo continuo, vigilancia hemodinámica y neurológica. Plan: ingreso a unidad neonatal para cuidados post-reanimación.`
+    else if (result.includes('FALLECIMIENTO') || noRetorno) e += ` A pesar de maniobras de reanimación avanzada sostenidas, no se logra retorno a circulación espontánea. Se declara fallecimiento.`
+    else if (result.includes('Cese')) e += ` Se decide cese de maniobras de reanimación tras intervención sostenida sin respuesta.`
+    return e
+  }
+
+  const fullReport = () => report() + `\n${'═'.repeat(56)}\nEVOLUCIÓN MÉDICA NARRATIVA:\n${'─'.repeat(56)}\n${evolucion()}\n`
   const B = 'active:scale-[0.96] transition-all duration-150'
   const elapsed_fmt = `${Math.floor(elapsed / 60)}:${(elapsed % 60).toString().padStart(2, '0')}`
 
@@ -543,15 +571,21 @@ export default function NalsMonitor() {
               </div>
               <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="NOMBRE / ID RECIÉN NACIDO..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl text-white font-black text-xs p-3 mb-4 uppercase shrink-0 focus:outline-none focus:border-blue-500/50 placeholder:text-slate-600" />
               <div className="flex gap-1.5 mb-4 shrink-0">
-                {['report', 'log'].map(t => (
+                {['report', 'evolucion', 'log'].map(t => (
                   <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${tab === t ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/[0.03] text-slate-500 border border-white/[0.06]'}`}>
-                    {t === 'report' ? 'Resumen' : 'Bitácora'}
+                    {t === 'report' ? 'Resumen' : t === 'evolucion' ? 'Evolución' : 'Bitácora'}
                   </button>
                 ))}
               </div>
               <div className="flex-1 overflow-y-auto mb-5 bg-black/20 rounded-2xl border border-white/[0.04] p-4 scrollbar-hide">
                 {tab === 'report' ? (
                   <pre className="text-[10px] text-blue-100/80 whitespace-pre-wrap leading-relaxed tabular-nums font-mono">{report()}</pre>
+                ) : tab === 'evolucion' ? (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3"><FileText className="w-4 h-4 text-teal-400" /><span className="text-xs font-black text-teal-400 uppercase">Evolución Médica Narrativa</span></div>
+                    <p className="text-[11px] text-blue-100/90 leading-[1.7] font-medium">{evolucion()}</p>
+                    <button onClick={() => { navigator.clipboard.writeText(evolucion()); alert('Evolución copiada', 'bg-teal-600') }} className={`mt-4 w-full py-2.5 bg-teal-600/20 border border-teal-500/20 text-teal-400 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 ${B}`}><Copy size={14} /> Copiar evolución</button>
+                  </div>
                 ) : (
                   <div className="space-y-1.5">
                     {logs.map((l, i) => (
@@ -569,8 +603,8 @@ export default function NalsMonitor() {
                 )}
               </div>
               <div className="grid grid-cols-3 gap-2.5 shrink-0">
-                <button onClick={() => window.open(`whatsapp://send?text=${encodeURIComponent(report())}`, '_blank')} className={`py-3.5 bg-gradient-to-b from-emerald-600 to-emerald-500 rounded-2xl text-white flex flex-col items-center gap-1 shadow-lg shadow-emerald-600/15 ${B}`}><MessageCircle size={18} /><span className="text-[8px] font-black uppercase">WhatsApp</span></button>
-                <button onClick={() => window.open(`mailto:?subject=Epicrisis%20Neonatal&body=${encodeURIComponent(report())}`, '_blank')} className={`py-3.5 bg-gradient-to-b from-blue-600 to-blue-500 rounded-2xl text-white flex flex-col items-center gap-1 shadow-lg shadow-blue-600/15 ${B}`}><Mail size={18} /><span className="text-[8px] font-black uppercase">Email</span></button>
+                <button onClick={() => window.open(`whatsapp://send?text=${encodeURIComponent(fullReport())}`, '_blank')} className={`py-3.5 bg-gradient-to-b from-emerald-600 to-emerald-500 rounded-2xl text-white flex flex-col items-center gap-1 shadow-lg shadow-emerald-600/15 ${B}`}><MessageCircle size={18} /><span className="text-[8px] font-black uppercase">WhatsApp</span></button>
+                <button onClick={() => window.open(`mailto:?subject=Evolucion%20Neonatal&body=${encodeURIComponent(fullReport())}`, '_blank')} className={`py-3.5 bg-gradient-to-b from-blue-600 to-blue-500 rounded-2xl text-white flex flex-col items-center gap-1 shadow-lg shadow-blue-600/15 ${B}`}><Mail size={18} /><span className="text-[8px] font-black uppercase">Email</span></button>
                 <button onClick={copy} className={`py-3.5 bg-white/[0.04] border border-white/[0.06] rounded-2xl text-slate-300 flex flex-col items-center gap-1 hover:bg-white/[0.06] ${B}`}><Copy size={18} /><span className="text-[8px] font-black uppercase">Copiar</span></button>
               </div>
             </div>
