@@ -411,9 +411,9 @@ export default function PalsMonitor() {
     e += ` Ritmo cardíaco inicial identificado: ${(RITMOS as any)[ritmoActual]?.nombre || ritmoActual}.`
     e += ` Se inician maniobras de reanimación cardiopulmonar avanzada con técnica ${techObj?.nombre || mode}`
     e += mode === 'CONTINUA' ? `, compresiones continuas a 100-120/minuto (vía aérea avanzada asegurada).` : ` en modalidad ${mode} (compresiones:ventilaciones).`
-    if (desfibrilaciones > 0) e += ` Se realizan ${desfibrilaciones} descarga${desfibrilaciones > 1 ? 's' : ''} eléctrica${desfibrilaciones > 1 ? 's' : ''} a ${doses.shock}J (${doses.jkg} J/kg).`
-    if (adrenalinas > 0) e += ` Se administra${adrenalinas > 1 ? 'n' : ''} ${adrenalinas} dosis de adrenalina (${doses.epiIV} mg IV).`
-    if (totInfo.size) e += ` Se asegura vía aérea avanzada con tubo endotraqueal #${totInfo.size} ${totInfo.tipo === 'CUFFED' ? 'con balón' : 'sin balón'}.`
+    if (desfibrilaciones > 0) e += ` Se realizan ${desfibrilaciones} descarga${desfibrilaciones > 1 ? 's' : ''} eléctrica${desfibrilaciones > 1 ? 's' : ''} a ${doses.shock}J.`
+    if (adrenalinas > 0) e += ` Se administra${adrenalinas > 1 ? 'n' : ''} ${adrenalinas} dosis de adrenalina (${doses.epi} mg IV).`
+    if (totInfo.size) e += ` Se asegura vía aérea avanzada con tubo endotraqueal #${totInfo.size}.`
     if (accesosObtenidos.length > 0) e += ` Accesos vasculares obtenidos: ${accesosObtenidos.map(a => `${a.nombre} (${a.tipo})`).join(', ')}.`
     if (glucemia !== null) e += ` Control de glicemia: ${glucemia} mg/dL${glucemia < 60 ? ' (hipoglicemia — se indica corrección)' : ''}.`
     const tratadas = CAUSAS_PALS_DATA.flatMap(c => c.manejos).filter(m => causasRealizadas.includes(m.id))
