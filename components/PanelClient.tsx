@@ -61,7 +61,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const [allTr, setAllTr] = useState(allTrials)
 
   // Admin state
-  const [adminTab, setAdminTab] = useState<'stats' | 'subs' | 'trials' | 'logs' | 'users' | 'config'>('stats')
+  const [adminTab, setAdminTab] = useState<'stats' | 'subs' | 'trials' | 'logs' | 'users'>('stats')
   const [adminStats, setAdminStats] = useState<any>(null)
   const [adminSubs, setAdminSubs] = useState<any[]>([])
   const [adminTrials, setAdminTrials] = useState<any[]>([])
@@ -72,8 +72,6 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const [userResults, setUserResults] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [grantModule, setGrantModule] = useState('')
-  const [appConfig, setAppConfig] = useState<Record<string, string>>({})
-  const [configSaving, setConfigSaving] = useState(false)
 
   const trialFor = (id: string) => trials.find(t => t.module_id === id)
   const isSub = (id: string) => isAdmin || subMods.includes(id)
@@ -138,11 +136,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
     else if (tab === 'trials') loadAdminTrials()
     else if (tab === 'logs') loadAdminLogs()
     else if (tab === 'users') loadAdminUsers()
-    else if (tab === 'config') loadConfig()
   }
-
-  const loadConfig = async () => { setAdminLoading(true); const r = await fetch('/api/admin/config'); if (r.ok) setAppConfig(await r.json()); setAdminLoading(false) }
-  const saveConfig = async () => { setConfigSaving(true); await fetch('/api/admin/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig) }); setConfigSaving(false) }
 
   useEffect(() => { if (panelView === 'admin') loadAdminStats() }, [panelView])
 
@@ -196,8 +190,8 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   // ADMIN PANEL VIEW
   // ════════════════════════════════
   const AdminView = () => (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-5 md:p-8 max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-5 sm:mb-6">
         <div>
           <h1 className="text-xl font-black text-slate-900 flex items-center gap-2"><Settings className="w-5 h-5 text-violet-600" /> Panel Administrativo</h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">Gestión de usuarios, suscripciones y trials</p>
@@ -206,14 +200,13 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
       </div>
 
       {/* Admin tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl overflow-x-auto">
+      <div className="flex gap-1 mb-5 sm:mb-6 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-hide -mx-1 px-1">
         {[
           { id: 'stats' as const, l: 'Resumen', i: <BarChart3 className="w-3.5 h-3.5" /> },
           { id: 'users' as const, l: 'Usuarios', i: <Users className="w-3.5 h-3.5" /> },
           { id: 'subs' as const, l: 'Suscripciones', i: <Crown className="w-3.5 h-3.5" /> },
           { id: 'trials' as const, l: 'Trials', i: <Timer className="w-3.5 h-3.5" /> },
           { id: 'logs' as const, l: 'Logs', i: <Eye className="w-3.5 h-3.5" /> },
-          { id: 'config' as const, l: 'Config', i: <Settings className="w-3.5 h-3.5" /> },
         ].map(t => (
           <button key={t.id} onClick={() => loadAdminTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${adminTab === t.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -227,15 +220,15 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
       {/* STATS */}
       {!adminLoading && adminTab === 'stats' && adminStats && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {[
               { l: 'Suscripciones', v: adminStats.total_subscriptions, c: 'text-emerald-600', bg: 'bg-emerald-50' },
               { l: 'Trials Totales', v: adminStats.total_trials, c: 'text-amber-600', bg: 'bg-amber-50' },
               { l: 'Trials Activos', v: adminStats.active_trials, c: 'text-blue-600', bg: 'bg-blue-50' },
               { l: 'Accesos', v: adminStats.total_access_logs, c: 'text-violet-600', bg: 'bg-violet-50' },
             ].map((s, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                <span className="text-3xl font-black text-slate-900">{s.v}</span>
+              <div key={i} className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 shadow-sm">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{s.v}</span>
                 <span className={`block text-[10px] font-bold uppercase tracking-wide mt-1 ${s.c}`}>{s.l}</span>
               </div>
             ))}
@@ -331,7 +324,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               {adminSubs.map((s: any) => (
                 <div key={s.id} className="flex items-center justify-between px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50">
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-slate-900 block truncate">{s.user_email || s.user_id?.slice(-12)}</span>
+                    <span className="text-xs font-bold text-slate-900 block truncate">{s.user_id?.slice(-12)}</span>
                     <span className="text-[10px] text-slate-500">{s.module_id} · {s.payment_ref}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -398,7 +391,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               {adminTrials.map((t: any) => (
                 <div key={t.id} className="flex items-center justify-between px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50">
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-slate-900 block truncate">{t.user_email || t.user_id?.slice(-12)}</span>
+                    <span className="text-xs font-bold text-slate-900 block truncate">{t.user_id?.slice(-12)}</span>
                     <span className="text-[10px] text-slate-500">{t.module_id}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -425,7 +418,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b border-slate-50 last:border-0 text-xs hover:bg-slate-50">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-[10px] font-mono text-slate-400 w-14 shrink-0">{new Date(l.created_at).toLocaleTimeString('es-ES', { hour12: false })}</span>
-                  <span className="font-bold text-slate-700 truncate">{l.user_email || l.user_id?.slice(-12)}</span>
+                  <span className="font-bold text-slate-700 truncate">{l.user_id?.slice(-12)}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-slate-500">{l.module_id}</span>
@@ -434,66 +427,6 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-{/* CONFIG */}
-      {!adminLoading && adminTab === 'config' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 mb-4">Precios y Duración</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Precio por módulo (USD)</label>
-                <input type="number" step="0.01" value={appConfig.module_price || ''} onChange={e => setAppConfig(p => ({ ...p, module_price: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-black focus:outline-none focus:border-teal-500" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Duración</label>
-                <input type="number" value={appConfig.subscription_duration || ''} onChange={e => setAppConfig(p => ({ ...p, subscription_duration: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-black focus:outline-none focus:border-teal-500" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Unidad</label>
-                <select value={appConfig.subscription_unit || 'months'} onChange={e => setAppConfig(p => ({ ...p, subscription_unit: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold bg-white focus:outline-none">
-                  <option value="days">Días</option>
-                  <option value="months">Meses</option>
-                  <option value="years">Años</option>
-                </select>
-              </div>
-            </div>
-            <p className="text-[11px] text-slate-400 font-medium mb-4">
-              Actualmente: <span className="font-black text-slate-700">${appConfig.module_price || '3.00'} USD</span> por <span className="font-black text-slate-700">{appConfig.subscription_duration || '12'} {appConfig.subscription_unit === 'days' ? 'días' : appConfig.subscription_unit === 'years' ? 'años' : 'meses'}</span>
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 mb-4">Identidad de Marca</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Nombre de la App</label>
-                <input type="text" value={appConfig.app_name || ''} onChange={e => setAppConfig(p => ({ ...p, app_name: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold focus:outline-none focus:border-teal-500" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">URL del Logo (imagen externa)</label>
-                <input type="text" placeholder="https://ejemplo.com/logo.png" value={appConfig.logo_url || ''} onChange={e => setAppConfig(p => ({ ...p, logo_url: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-teal-500" />
-                {appConfig.logo_url && (
-                  <div className="mt-3 flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                    <img src={appConfig.logo_url} alt="Logo" className="w-10 h-10 rounded-lg object-contain" onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
-                    <span className="text-xs text-slate-500 font-medium">Vista previa</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <button onClick={saveConfig} disabled={configSaving}
-            className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-sm font-black hover:bg-slate-800 transition-all active:scale-[0.98] flex justify-center items-center gap-2">
-            {configSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4" /> Guardar Configuración</>}
-          </button>
         </div>
       )}
 
@@ -650,13 +583,13 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
 
         <div className="flex-1 overflow-y-auto">
           {panelView === 'admin' && isAdmin ? <AdminView /> : !activeModule ? (
-            <div className="p-5 md:p-8 max-w-4xl mx-auto">
+            <div className="p-4 sm:p-5 md:p-8 max-w-4xl mx-auto">
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-slate-900 mb-1">Hola, {userName.split(' ')[0]} {isAdmin ? '🛡️' : '👋'}</h1>
                 <p className="text-sm text-slate-500 font-medium">{isAdmin ? 'Acceso total a todos los módulos.' : 'Accede a tus herramientas clínicas desde aquí.'}</p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-8">
                 <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center"><Crown className="w-4 h-4 text-teal-600" /></div></div>
                   <span className="text-2xl font-black text-slate-900">{isAdmin ? '∞' : subMods.length}</span>
@@ -677,14 +610,14 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               {accessibleModules.length > 0 && (
                 <>
                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-3">{isAdmin ? 'Todos los Módulos' : 'Mis Herramientas'}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3 mb-6 sm:mb-8">
                     {accessibleModules.map(m => {
                       const c = CL[m.color] || CL['#3b82f6']
                       const trial = trialFor(m.id)
                       const sub = subMods.includes(m.id)
                       return (
                         <button key={m.id} onClick={() => openModule(m.id)}
-                          className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all text-left group active:scale-[0.98]">
+                          className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all text-left group active:scale-[0.98]">
                           <div className="flex items-start justify-between mb-3">
                             <div className={`w-10 h-10 rounded-xl ${c.light} flex items-center justify-center ${c.text}`}>{ICON_MAP[m.icon]}</div>
                             {isAdmin && <span className="text-[9px] font-black text-violet-600 bg-violet-50 px-2 py-1 rounded-lg border border-violet-200">ADMIN</span>}
@@ -719,7 +652,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
                       const tried = hasTried(m.id)
                       return (
                         <button key={m.id} onClick={() => openModule(m.id)}
-                          className="bg-white rounded-2xl border border-dashed border-slate-200 p-5 hover:border-slate-300 transition-all text-left group active:scale-[0.98]">
+                          className="bg-white rounded-2xl border border-dashed border-slate-200 p-4 sm:p-5 hover:border-slate-300 transition-all text-left group active:scale-[0.98]">
                           <div className="flex items-start justify-between mb-3">
                             <div className={`w-10 h-10 rounded-xl ${c.light} flex items-center justify-center ${c.text}`}>{ICON_MAP[m.icon]}</div>
                             <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">{tried ? '$3/año' : '72h gratis'}</span>

@@ -18,7 +18,7 @@ import AclsMonitor from '@/components/modules/AclsMonitor'
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 interface ModuleStatus { subscribed_modules: string[]; active_trials: ActiveTrial[]; all_trials: string[] }
-interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[]; price?: string; duration?: string; durationUnit?: string }
+interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[] }
 
 const BADGE: Record<string, { text: string; cls: string }> = {
   active: { text: 'Disponible', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -42,7 +42,7 @@ const CL: Record<string, { text: string; bg: string; light: string; iconBg: stri
   '#ef4444': { text: 'text-red-600', bg: 'bg-red-600', light: 'bg-red-50', iconBg: 'bg-red-100', ring: 'ring-red-200', gradient: 'from-red-500 to-red-600' },
 }
 
-export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules, price = '3.00', duration = '12', durationUnit = 'months' }: Props) {
+export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules }: Props) {
   const { isSignedIn: clerkSignedIn } = useUser()
   const isSignedIn = clerkSignedIn ?? initialSignedIn
 
@@ -103,9 +103,6 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   const isSubscribed = (id: string) => modStatus?.subscribed_modules?.includes(id)
   const hasTried = (id: string) => modStatus?.all_trials?.includes(id)
   const selectedMod = modules.find(m => m.id === selectedModule)
-  const durationLabel = durationUnit === 'days' ? (duration === '1' ? 'día' : 'días') : durationUnit === 'years' ? (duration === '1' ? 'año' : 'años') : (duration === '1' ? 'mes' : 'meses')
-  const priceTag = `$${price}/${duration} ${durationLabel}`
-  const priceShort = `$${price}`
 
   // ══════════════════════════════════════════════
   //  VISTA MÓDULO ACTIVO (FULLSCREEN)
@@ -254,7 +251,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                   Ver módulos clínicos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </a>
                 <a href="#pricing" className="inline-flex items-center gap-2 bg-white text-slate-700 px-6 py-3 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm">
-                  {priceTag}/módulo
+                  $3/módulo/año
                 </a>
               </div>
 
@@ -416,28 +413,28 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             { icon: <WifiOff className="w-5 h-5 text-rose-500" />, v: '100%', l: 'Operativo offline' },
             { icon: <Lock className="w-5 h-5 text-emerald-600" />, v: 'Local', l: 'Datos en tu dispositivo' },
           ].map((s, i) => (
-            <div key={i} className="py-6 px-5 flex items-center gap-3.5 hover:bg-slate-50/50 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0 shadow-sm">{s.icon}</div>
-              <div><div className="text-lg font-black text-slate-900 leading-tight">{s.v}</div><div className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">{s.l}</div></div>
+            <div key={i} className="py-4 sm:py-6 px-4 sm:px-5 flex items-center gap-3 hover:bg-slate-50/50 transition-colors">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0 shadow-sm">{s.icon}</div>
+              <div><div className="text-base sm:text-lg font-black text-slate-900 leading-tight">{s.v}</div><div className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wide">{s.l}</div></div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ━━━ CAPABILITIES ━━━ */}
-      <section className="py-20 px-5 bg-gradient-to-b from-white to-slate-50/50">
+      <section className="py-14 sm:py-20 px-4 sm:px-5 bg-gradient-to-b from-white to-slate-50/50">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14 anim-rise">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">Ingeniería pensada para la clínica</h2>
+          <div className="text-center mb-10 sm:mb-14 anim-rise">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 mb-3">Ingeniería pensada para la clínica</h2>
             <p className="text-sm sm:text-base text-slate-500 font-medium max-w-xl mx-auto">Software que no depende del WiFi del hospital. Procesamiento local, cero latencia, privacidad absoluta.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
             {[
               { icon: <Smartphone className="w-5 h-5" />, title: 'Arquitectura PWA', desc: 'Instalable en móvil y tablet. Carga instantánea como app nativa sin pasar por tiendas.' },
               { icon: <Cpu className="w-5 h-5" />, title: 'Procesamiento Local', desc: 'Cálculos de dosis y epicrisis se procesan en tu navegador. Cero envío de datos a servidores.' },
               { icon: <Globe className="w-5 h-5" />, title: 'Sincronización Diferida', desc: 'Trabaja sin señal, genera reportes y compártelos cuando recuperes la conexión.' },
             ].map((f, i) => (
-              <div key={i} className="bg-white p-7 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all group anim-slide d2">
+              <div key={i} className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all group anim-slide d2">
                 <div className="w-11 h-11 bg-slate-50 rounded-xl flex items-center justify-center mb-5 text-slate-700 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors border border-slate-100">{f.icon}</div>
                 <h3 className="text-base font-black text-slate-900 mb-2">{f.title}</h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">{f.desc}</p>
@@ -448,29 +445,29 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       </section>
 
       {/* ━━━ SCENARIOS ━━━ */}
-      <section id="scenarios" className="py-20 px-5 bg-slate-900 relative overflow-hidden grain">
+      <section id="scenarios" className="py-14 sm:py-20 px-4 sm:px-5 bg-slate-900 relative overflow-hidden grain">
         <div className="absolute top-0 left-1/4 w-80 h-80 bg-teal-500/10 blur-[100px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none" />
         <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-14">
-            <span className="inline-block bg-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-white/10 mb-5">Casos de Uso</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mb-3">Construido para el momento crítico</h2>
+          <div className="text-center mb-10 sm:mb-14">
+            <span className="inline-block bg-white/5 text-slate-300 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-white/10 mb-4 sm:mb-5">Casos de Uso</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-3">Construido para el momento crítico</h2>
             <p className="text-sm text-slate-400 font-medium">Tres escenarios clínicos reales, tres herramientas que responden al instante.</p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
             {[
               { title: 'Sala de Partos', tag: 'Reanimación neonatal', desc: 'Neonato de 32 semanas con bradicardia al nacer. Metrónomo 3:1 activo, adrenalina calculada por peso, APGAR automático, epicrisis lista por WhatsApp al terminar.', gradient: 'from-rose-500 to-pink-600', icon: <Heart className="w-6 h-6 text-white" /> },
               { title: 'UCI Neonatal', tag: 'Monitoreo de turno', desc: 'Seis incubadoras activas con alertas configuradas: bradicardia, desaturación, temperatura. Entrega de turno con reporte automático y tendencias de 12 horas.', gradient: 'from-cyan-500 to-blue-600', icon: <Activity className="w-6 h-6 text-white" /> },
               { title: 'Farmacia Clínica', tag: 'Dosis exactas', desc: 'Prematuro de 1.2 kg necesita cafeína citrato. El sistema cruza peso, EG y rango terapéutico. Detecta interacción con aminofilina antes de prescribir.', gradient: 'from-emerald-500 to-teal-600', icon: <Shield className="w-6 h-6 text-white" /> },
             ].map((s, i) => (
               <div key={i} className="rounded-2xl overflow-hidden bg-slate-800/50 border border-white/5 hover:-translate-y-1 transition-all duration-300 group">
-                <div className={`bg-gradient-to-br ${s.gradient} p-7 relative overflow-hidden`}>
+                <div className={`bg-gradient-to-br ${s.gradient} p-5 sm:p-7 relative overflow-hidden`}>
                   <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
                   <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-4 border border-white/10 relative z-10">{s.icon}</div>
                   <span className="text-[10px] font-black text-white/70 uppercase tracking-widest block mb-1 relative z-10">{s.tag}</span>
                   <h3 className="text-xl font-black text-white relative z-10">{s.title}</h3>
                 </div>
-                <div className="p-7"><p className="text-sm text-slate-300 font-medium leading-relaxed">{s.desc}</p></div>
+                <div className="p-5 sm:p-7"><p className="text-sm text-slate-300 font-medium leading-relaxed">{s.desc}</p></div>
               </div>
             ))}
           </div>
@@ -478,22 +475,22 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       </section>
 
       {/* ━━━ MODULES CATALOG ━━━ */}
-      <section id="modules" className="py-20 px-5 bg-slate-50/60">
+      <section id="modules" className="py-14 sm:py-20 px-4 sm:px-5 bg-slate-50/60">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-5">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-4 sm:gap-5">
             <div>
               <span className="inline-flex items-center gap-1.5 bg-teal-100 text-teal-800 text-[11px] font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full mb-4">
                 <Sparkles className="w-3 h-3" /> Catálogo Clínico
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Un módulo para cada flujo crítico</h2>
-              <p className="text-sm sm:text-base text-slate-500 font-medium">{priceShort} USD/{duration} {durationLabel} por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
+              <p className="text-sm sm:text-base text-slate-500 font-medium">$3 USD/año por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
             </div>
             <div className="text-sm font-bold text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
               {modules.filter(m => m.status === 'active').length} disponible{modules.filter(m => m.status === 'active').length > 1 ? 's' : ''} · {modules.filter(m => m.status !== 'active').length} en desarrollo
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {modules.map((mod, idx) => {
               const badge = BADGE[mod.status]
               const trial = trialFor(mod.id)
@@ -507,9 +504,11 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                   className={`group rounded-2xl border border-slate-200/80 overflow-hidden bg-white card-lift flex flex-col anim-slide d${Math.min(idx + 1, 6)} ${live ? 'cursor-pointer' : 'opacity-50 grayscale-[0.15]'}`}
                   onClick={() => { if (!live) return; if (!isSignedIn) return; handleModuleClick(mod.id) }}
                 >
+                  {/* Color strip */}
                   <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${mod.color}, ${mod.color}88)` }} />
 
-                  <div className="p-6 flex-1 flex flex-col">
+                  <div className="p-5 sm:p-6 flex-1 flex flex-col">
+                    {/* Header */}
                     <div className="flex items-start justify-between mb-5">
                       <div className={`${c.iconBg} p-2.5 rounded-xl ${c.text} ring-4 ${c.ring}/30 shadow-sm`}>
                         {ICON_MAP[mod.icon] || <Heart className="w-5 h-5" />}
@@ -521,10 +520,12 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                       </div>
                     </div>
 
+                    {/* Info */}
                     <h3 className="text-base font-black text-slate-900 mb-0.5 group-hover:text-slate-800 transition-colors">{mod.name}</h3>
                     <p className={`text-xs font-bold ${c.text} mb-3`}>{mod.tagline}</p>
                     <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-5 line-clamp-2">{mod.description}</p>
 
+                    {/* Features */}
                     <ul className="space-y-2 mb-5">
                       {mod.features.slice(0, 3).map((f, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs text-slate-600 font-medium">
@@ -534,8 +535,9 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                     </ul>
                     {mod.features.length > 3 && <p className={`text-[11px] font-bold ${c.text} mb-4`}>+{mod.features.length - 3} características más</p>}
 
+                    {/* Footer */}
                     <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-black text-slate-900">{priceShort} <span className="font-bold text-slate-400">USD/{duration} {durationLabel}</span></span>
+                      <span className="text-xs font-black text-slate-900">$3 <span className="font-bold text-slate-400">USD/año</span></span>
                       {live && !isSignedIn && (
                         <SignInButton mode="modal">
                           <button onClick={e => e.stopPropagation()} className={`text-xs font-black ${c.text} flex items-center gap-1 hover:gap-2 transition-all`}>Probar gratis <ArrowRight className="w-3.5 h-3.5" /></button>
@@ -556,11 +558,12 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       </section>
 
       {/* ━━━ PRICING ━━━ */}
-      <section id="pricing" className="py-24 px-5 bg-gradient-to-b from-white via-slate-50/50 to-white relative overflow-hidden">
+      <section id="pricing" className="py-14 sm:py-24 px-4 sm:px-5 bg-gradient-to-b from-white via-slate-50/50 to-white relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-teal-50/40 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10">
-          <div className="text-center mb-16">
+          {/* Header centrado */}
+          <div className="text-center mb-10 sm:mb-16">
             <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-teal-200 mb-5">
               <Sparkles className="w-3 h-3" /> Precio transparente
             </span>
@@ -568,23 +571,24 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             <p className="text-base text-slate-500 font-medium max-w-lg mx-auto">Cada módulo es independiente. Sin paquetes forzados, sin letra chica.</p>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-stretch gap-6 max-w-4xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-stretch gap-4 sm:gap-6 max-w-4xl mx-auto">
 
+            {/* Card izquierda — El precio grande */}
             <div className="flex-1 relative">
               <div className="absolute -inset-3 bg-gradient-to-br from-teal-200/25 via-cyan-100/15 to-emerald-200/20 rounded-[2.5rem] blur-2xl pointer-events-none" />
-              <div className="relative bg-white rounded-[2rem] border-2 border-teal-300/50 p-8 shadow-[0_20px_60px_-15px_rgba(13,148,136,0.12)] h-full flex flex-col">
+              <div className="relative bg-white rounded-[2rem] border-2 border-teal-300/50 p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(13,148,136,0.12)] h-full flex flex-col">
                 <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-teal-500/25">Recomendado</div>
 
                 <div className="pt-4 mb-6">
                   <p className="text-sm font-bold text-slate-500 mb-4">Suscripción por módulo</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">${price}</span>
+                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">$3</span>
                     <div className="flex flex-col">
                       <span className="text-lg font-black text-slate-400">USD</span>
-                      <span className="text-xs font-bold text-slate-300 -mt-1">por {duration} {durationLabel}</span>
+                      <span className="text-xs font-bold text-slate-300 -mt-1">por año</span>
                     </div>
                   </div>
-                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ ${(parseFloat(price) / Math.max(1, parseInt(duration))).toFixed(2)} USD/{durationUnit === 'months' ? 'mes' : durationUnit === 'days' ? 'día' : 'año'} por módulo</p>
+                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ $0.25 USD/mes por módulo</p>
                 </div>
 
                 <div className="flex-1 space-y-3.5 mb-8">
@@ -609,7 +613,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             </div>
 
             {/* Card derecha — Módulos disponibles */}
-            <div className="flex-1 bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm flex flex-col">
+            <div className="flex-1 bg-white rounded-[2rem] border border-slate-200 p-6 sm:p-8 shadow-sm flex flex-col">
               <h3 className="text-lg font-black text-slate-900 mb-1">Módulos disponibles</h3>
               <p className="text-sm text-slate-500 font-medium mb-6">Activá los que necesites para tu práctica</p>
 
@@ -634,7 +638,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                       ) : trial ? (
                         <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 flex items-center gap-1"><Timer className="w-3 h-3" />{trial.hours_left}h</span>
                       ) : live ? (
-                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">{priceShort}<span className="text-slate-400 font-bold">/{duration}{durationUnit === 'months' ? 'm' : durationUnit === 'days' ? 'd' : 'a'}</span></span>
+                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">$3<span className="text-slate-400 font-bold">/año</span></span>
                       ) : (
                         <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">Pronto</span>
                       )}
@@ -652,10 +656,10 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       </section>
 
       {/* ━━━ FAQ ━━━ */}
-      <section id="faq" className="py-20 bg-slate-50 border-y border-slate-200 px-5">
+      <section id="faq" className="py-14 sm:py-20 bg-slate-50 border-y border-slate-200 px-4 sm:px-5">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Preguntas Frecuentes</h2>
+          <div className="text-center mb-8 sm:mb-14">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Preguntas Frecuentes</h2>
           </div>
           <div className="space-y-3">
             {[
@@ -667,11 +671,11 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               { q: '¿Puedo cancelar mi suscripción?', a: 'Sí. Sin contratos ni penalizaciones. Tu acceso se mantiene activo hasta que se cumpla el año pagado. Las epicrisis que generaste son tuyas para siempre.' },
             ].map((faq, i) => (
               <details key={i} className="group border border-slate-200 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all overflow-hidden [&_summary::-webkit-details-marker]:hidden">
-                <summary className="flex items-center justify-between cursor-pointer p-5 font-bold text-slate-900 text-sm sm:text-[15px] select-none leading-snug">
+                <summary className="flex items-center justify-between cursor-pointer p-4 sm:p-5 font-bold text-slate-900 text-[13px] sm:text-[15px] select-none leading-snug">
                   {faq.q}
                   <span className="transition-transform duration-300 group-open:rotate-180 bg-slate-50 text-slate-400 rounded-full p-1.5 flex-shrink-0 ml-3"><ChevronDown className="w-4 h-4" /></span>
                 </summary>
-                <div className="px-5 pb-5 text-slate-500 font-medium leading-relaxed text-sm border-t border-slate-50 pt-4">{faq.a}</div>
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 text-slate-500 font-medium leading-relaxed text-sm border-t border-slate-50 pt-3 sm:pt-4">{faq.a}</div>
               </details>
             ))}
           </div>
@@ -679,7 +683,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       </section>
 
      {/* ━━━ CTA ━━━ */}
-      <section className="relative py-28 overflow-hidden bg-gradient-to-b from-teal-600 via-teal-700 to-cyan-800">
+      <section className="relative py-16 sm:py-28 overflow-hidden bg-gradient-to-b from-teal-600 via-teal-700 to-cyan-800">
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -692,7 +696,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             <Heart className="w-3.5 h-3.5 text-white anim-heartbeat" />
             <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">Para profesionales de neonatología</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 text-white leading-[1.08]">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight mb-5 sm:mb-6 text-white leading-[1.08]">
             Precisión clínica,<br />
             <span className="relative inline-block pb-3">
               <span className="text-cyan-200">en tus manos.</span>
@@ -701,17 +705,17 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               </svg>
             </span>
           </h2>
-          <p className="text-base sm:text-lg text-teal-100/70 mb-10 font-medium max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-teal-100/70 mb-8 sm:mb-10 font-medium max-w-xl mx-auto leading-relaxed">
             Creá tu cuenta, activá el módulo que necesites y empezá a usarlo hoy.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             {isSignedIn ? (
-              <a href="#modules" className="inline-flex items-center gap-2.5 bg-white text-teal-700 px-8 py-4 rounded-2xl hover:bg-teal-50 transition-all font-black text-base shadow-2xl shadow-black/10 active:scale-[0.98] group">
+              <a href="#modules" className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white text-teal-700 px-8 py-3.5 sm:py-4 rounded-2xl hover:bg-teal-50 transition-all font-black text-base shadow-2xl shadow-black/10 active:scale-[0.98] group">
                 Ver módulos <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
             ) : (
               <SignUpButton mode="modal">
-                <button className="inline-flex items-center gap-2.5 bg-white text-teal-700 px-8 py-4 rounded-2xl hover:bg-teal-50 transition-all font-black text-base shadow-2xl shadow-black/10 active:scale-[0.98] group">
+                <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white text-teal-700 px-8 py-3.5 sm:py-4 rounded-2xl hover:bg-teal-50 transition-all font-black text-base shadow-2xl shadow-black/10 active:scale-[0.98] group">
                   Crear cuenta gratis <ArrowUpRight className="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </button>
               </SignUpButton>
@@ -731,7 +735,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
       </section>
 
       {/* ━━━ FOOTER ━━━ */}
-      <footer className="bg-slate-50 border-t border-slate-200 px-5">
+      <footer className="bg-slate-50 border-t border-slate-200 px-4 sm:px-5">
         <div className="max-w-7xl mx-auto">
           {/* Top section with CTA */}
           <div className="py-12 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-200">
