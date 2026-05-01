@@ -798,6 +798,141 @@ export default function AclsMonitor() {
         </div>
       )}
 
+      {/* BICARBONATO MODAL (Acidosis H+) */}
+      {showBicarbModal && (
+        <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+              <h3 className="font-black uppercase text-sm text-emerald-400 tracking-widest flex items-center gap-3"><FlaskConical size={20}/> Acidosis (H+)</h3>
+              <button onClick={() => setShowBicarbModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: 'NaHCO₃ 1 mEq/kg', desc: 'Bicarbonato de Sodio — bolo IV', cant: 1 },
+                { label: 'NaHCO₃ 2 mEq/kg', desc: 'Acidosis severa (pH < 7.1)', cant: 2 },
+                { label: 'NaHCO₃ Infusión', desc: '150 mEq en 1L D5W', cant: 0.5 },
+              ].map(b => (
+                <button key={b.label} onClick={() => { handleAdminBicarb(b.cant, b.label); }} 
+                  className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-emerald-500/30 transition-all active:scale-[0.98] text-left">
+                  <div><span className="block text-xs font-black text-white">{b.label}</span><span className="block text-[10px] text-slate-400 mt-0.5">{b.desc}</span></div>
+                  <ChevronRight size={16} className="text-slate-600" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POTASIO MODAL (Hipo/Hiper K+) */}
+      {showPotassiumModal && (
+        <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+              <h3 className="font-black uppercase text-sm text-amber-400 tracking-widest flex items-center gap-3"><Activity size={20}/> Hipo/Hiper K+</h3>
+              <button onClick={() => setShowPotassiumModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+            </div>
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-4">Hipercalemia</p>
+            <div className="space-y-2 mb-5">
+              {[
+                { label: 'Gluconato de Calcio 10%', desc: '10-20 mL IV en 2-5 min (estabiliza membrana)', id: 'ca_gluc' },
+                { label: 'Insulina + Dextrosa', desc: '10U insulina + 25g dextrosa IV (shift K+)', id: 'ins_dex' },
+                { label: 'NaHCO₃ 50 mEq', desc: 'Bicarbonato IV (shift K+)', id: 'bicarb_k' },
+                { label: 'Salbutamol nebulizado', desc: '10-20 mg nebulizado (shift K+)', id: 'salb' },
+              ].map(d => (
+                <button key={d.id} onClick={() => { addLog(`K+ MANEJO: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); setShowPotassiumModal(false); }}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left">
+                  <div><span className="block text-xs font-black text-white">{d.label}</span><span className="block text-[9px] text-slate-400 mt-0.5">{d.desc}</span></div>
+                  <ChevronRight size={16} className="text-slate-600" />
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-3">Hipocalemia</p>
+            <div className="space-y-2">
+              {[
+                { label: 'KCl 10 mEq/h IV', desc: 'Infusión lenta por vía central', id: 'kcl_10' },
+                { label: 'KCl 20 mEq/h IV', desc: 'Hipocalemia severa (K+ < 2.5)', id: 'kcl_20' },
+                { label: 'MgSO₄ 2g IV', desc: 'Sulfato de Magnesio (co-factor)', id: 'mg_k' },
+              ].map(d => (
+                <button key={d.id} onClick={() => { addLog(`K+ MANEJO: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); setShowPotassiumModal(false); }}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left">
+                  <div><span className="block text-xs font-black text-white">{d.label}</span><span className="block text-[9px] text-slate-400 mt-0.5">{d.desc}</span></div>
+                  <ChevronRight size={16} className="text-slate-600" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TROMBOLISIS MODAL (Trombosis Pulmonar) */}
+      {showTrombolisisModal && (
+        <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+              <h3 className="font-black uppercase text-sm text-rose-400 tracking-widest flex items-center gap-3"><AlertTriangle size={20}/> Trombosis Pulmonar</h3>
+              <button onClick={() => setShowTrombolisisModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium mb-4">Trombolíticos — administrar durante RCP si se sospecha TEP masivo</p>
+            <div className="space-y-3">
+              {[
+                { label: 'Tenecteplase (TNK)', desc: 'Bolo IV único según peso (30-50 mg)', id: 'tnk' },
+                { label: 'Alteplase (tPA / Actilyse)', desc: '50 mg bolo IV + 50 mg en 60 min', id: 'tpa' },
+                { label: 'Alteplase 100 mg', desc: '100 mg IV en 2 horas (protocolo estándar)', id: 'tpa100' },
+                { label: 'Heparina bolo', desc: '80 UI/kg bolo IV (anticoagulación)', id: 'hep' },
+              ].map(d => (
+                <button key={d.id} onClick={() => { addLog(`TROMBOLISIS: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); setShowTrombolisisModal(false); }}
+                  className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-rose-500/30 transition-all active:scale-[0.98] text-left">
+                  <div><span className="block text-xs font-black text-white">{d.label}</span><span className="block text-[9px] text-slate-400 mt-0.5">{d.desc}</span></div>
+                  <ChevronRight size={16} className="text-slate-600" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOXINAS MODAL */}
+      {showToxinsModal && (
+        <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+              <h3 className="font-black uppercase text-sm text-purple-400 tracking-widest flex items-center gap-3"><Pill size={20}/> Toxinas — Antídotos</h3>
+              <button onClick={() => setShowToxinsModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+            </div>
+            <div className="space-y-3">
+              {ANTIDOTOS_DATA.map(a => (
+                <button key={a.id} onClick={() => { addLog(`ANTÍDOTO: ${a.nombre} (${a.indicacion}) — ${a.dosis}`, "DOSIS"); speak(`${a.nombre} administrado.`); setShowToxinsModal(false); }}
+                  className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-purple-500/30 transition-all active:scale-[0.98] text-left">
+                  <div><span className="block text-xs font-black text-white">{a.nombre}</span><span className="block text-[9px] text-slate-400 mt-0.5">{a.indicacion} — {a.dosis}</span></div>
+                  <ChevronRight size={16} className="text-slate-600" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HEMODERIVADOS MODAL */}
+      {showHemoderivadosModal && (
+        <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+              <h3 className="font-black uppercase text-sm text-rose-400 tracking-widest flex items-center gap-3"><Droplets size={20}/> Hemoderivados</h3>
+              <button onClick={() => setShowHemoderivadosModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+            </div>
+            <div className="space-y-3">
+              {AGENTES_HEMODERIVADOS.map(h => (
+                <button key={h.id} onClick={() => triggerVolumeInput(h)}
+                  className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-rose-500/30 transition-all active:scale-[0.98] text-left">
+                  <div><span className="block text-xs font-black text-white">{h.nombre}</span><span className="block text-[9px] text-slate-400 mt-0.5">1 Unidad = {h.volPorUnidad} mL</span></div>
+                  <ChevronRight size={16} className="text-slate-600" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FINISH MODAL */}
       {showFinishModal && (
         <div className="fixed inset-0 z-[1200] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
