@@ -341,7 +341,7 @@ export default function PalsMonitor() {
     triggerHaptic([200, 50, 200]); 
     addLog(`INICIO RCP (${m})`, 'SYSTEM'); 
     speak(`Iniciando soporte vital pediátrico.`);
-    setModal(null);
+    if (!tutorialActive.current) setModal(null);
   };
 
   const handleShock = () => {
@@ -364,7 +364,7 @@ export default function PalsMonitor() {
     addLog(`ACCESO VASCULAR: ${nombre} (${tipo})`, 'TECH');
     speak(`${nombre} obtenida en ${tipo}.`);
     triggerHaptic(100);
-    setModal(null);
+    if (!tutorialActive.current) setModal(null);
   };
 
   const handleManejoCausaMultiple = (manejo: any) => {
@@ -650,7 +650,7 @@ export default function PalsMonitor() {
                    {[1,2,3,4,5,6,7,8,9, 'DEL', 0, 'OK'].map(n => (
                      <button key={n} onClick={() => {
                         if (n === 'DEL') setTempEdad(v => v.length > 0 ? v.slice(0, -1) : '');
-                        else if (n === 'OK') { updatePatientData(tempEdad || '0', tempUnidad); setModal(null); }
+                        else if (n === 'OK') { updatePatientData(tempEdad || '0', tempUnidad); if (!tutorialActive.current) setModal(null); }
                         else if (typeof n === 'number') setTempEdad(v => v.length < 2 ? v + n : v);
                      }} className={`h-14 rounded-2xl text-lg active:scale-90 shadow-md ${n === 'OK' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-white'}`}>{n}</button>
                    ))}
@@ -701,7 +701,7 @@ export default function PalsMonitor() {
                    </div>
                  </button>
                  <div className="grid grid-cols-2 gap-4">
-                    <button onClick={() => { speak(`Bolo de cristaloides.`); addLog(`BOLO CRISTALOIDES ${doses.bolus}ml`, 'DRUG'); triggerHaptic(80); setModal(null); }} className="p-5 bg-blue-600 text-white rounded-[28px] flex flex-col items-center gap-1 shadow-lg active:scale-95"><Droplets size={22}/><span className="text-[10px] font-black uppercase tracking-tighter">Bolo {doses.bolus}ml</span></button>
+                    <button onClick={() => { speak(`Bolo de cristaloides.`); addLog(`BOLO CRISTALOIDES ${doses.bolus}ml`, 'DRUG'); triggerHaptic(80); if (!tutorialActive.current) setModal(null); }} className="p-5 bg-blue-600 text-white rounded-[28px] flex flex-col items-center gap-1 shadow-lg active:scale-95"><Droplets size={22}/><span className="text-[10px] font-black uppercase tracking-tighter">Bolo {doses.bolus}ml</span></button>
                     <button onClick={() => { speak("Glicemia."); setModal('glucose'); }} className="p-5 bg-amber-600 text-white rounded-[28px] flex flex-col items-center gap-1 shadow-lg active:scale-95"><Activity size={22}/><span className="text-[10px] font-black uppercase tracking-tighter">Glicemia</span></button>
                  </div>
               </div>
@@ -715,7 +715,7 @@ export default function PalsMonitor() {
                     <h3 className="font-black text-purple-400 uppercase tracking-widest text-sm leading-none">Mezclas Vasoactivas</h3>
                     <span className="text-[9px] text-slate-500 font-bold uppercase mt-2 leading-none">Dosis {weight}kg • PALS Stnd.</span>
                   </div>
-                  <button onClick={() => setModal(null)} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button>
+                  <button onClick={closeModal} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button>
                </div>
                <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide pr-2">
                   {INFUSIONES_DATA.map(inf => {
@@ -744,7 +744,7 @@ export default function PalsMonitor() {
                           if (isNaN(val)) return;
                           setGlucemia(val); addLog(`GLUCEMIA: ${val} mg/dL`, 'SYSTEM'); 
                           speak(`Glicemia: ${val} miligramos.`);
-                          setModal(null); setTempGlucemia(''); 
+                          if (!tutorialActive.current) setModal(null); setTempGlucemia(''); 
                         }
                         else if (typeof n === 'number') setTempGlucemia(v => v.length < 3 ? v + n : v);
                      }} className={`h-14 rounded-2xl text-lg active:scale-90 shadow-md ${n === 'OK' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white'}`}>{n}</button>
@@ -760,7 +760,7 @@ export default function PalsMonitor() {
                  <button onClick={() => { 
                    const ageInYrs = edadUnidad === 'meses' ? (parseFloat(edad)/12) : parseFloat(edad);
                    setTotInfo({size: ((ageInYrs/4) + 3.5).toFixed(1), depth: (((ageInYrs/4) + 3.5) * 3).toFixed(1)}); 
-                   setMode('CONTINUA'); setModal(null); addLog(`TET CUFFED ADM`, 'AIRWAY'); speak("Tubo con balón posicionado."); 
+                   setMode('CONTINUA'); if (!tutorialActive.current) setModal(null); addLog(`TET CUFFED ADM`, 'AIRWAY'); speak("Tubo con balón posicionado."); 
                  }} className="bg-indigo-600/20 border border-indigo-500/50 p-6 rounded-3xl flex flex-col items-center gap-2 active:scale-95 shadow-lg">
                    <span className="text-[10px] font-black uppercase text-indigo-300">Con Balón</span>
                    <span className="text-4xl font-black text-white">
@@ -770,7 +770,7 @@ export default function PalsMonitor() {
                  <button onClick={() => { 
                    const ageInYrs = edadUnidad === 'meses' ? (parseFloat(edad)/12) : parseFloat(edad);
                    setTotInfo({size: ((ageInYrs/4) + 4).toFixed(1), depth: (((ageInYrs/4) + 4) * 3).toFixed(1)}); 
-                   setMode('CONTINUA'); setModal(null); addLog(`TET UNCUFFED ADM`, 'AIRWAY'); speak("Tubo sin balón posicionado."); 
+                   setMode('CONTINUA'); if (!tutorialActive.current) setModal(null); addLog(`TET UNCUFFED ADM`, 'AIRWAY'); speak("Tubo sin balón posicionado."); 
                  }} className="bg-slate-800/50 border border-white/5 p-6 rounded-3xl flex flex-col items-center gap-2 active:scale-95 shadow-lg">
                    <span className="text-[10px] font-black uppercase text-slate-500">Sin Balón</span>
                    <span className="text-4xl font-black text-white">
@@ -785,7 +785,7 @@ export default function PalsMonitor() {
             <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-[40px] p-8 shadow-2xl flex flex-col max-h-[85vh]">
                <div className="flex justify-between items-center mb-6">
                  <div className="flex flex-col text-left"><h3 className="font-black text-blue-400 uppercase tracking-widest text-sm leading-none">Accesos Vasculares</h3><span className="text-[9px] text-slate-500 font-bold uppercase mt-1">Registrar Vía</span></div>
-                 <button onClick={() => setModal(null)} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button>
+                 <button onClick={closeModal} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button>
                </div>
                <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide pr-2">
                   {VASCULAR_DATA.map(v => (
@@ -810,7 +810,7 @@ export default function PalsMonitor() {
 
           {modal === 'h5t' && (
             <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-[40px] p-8 shadow-2xl flex flex-col max-h-[85vh]">
-              <div className="flex justify-between items-center mb-6 px-2 text-left"><div className="flex flex-col"><h3 className="font-black text-cyan-400 uppercase tracking-widest text-sm">Causas Reversibles</h3><span className="text-[9px] font-bold text-slate-500 uppercase mt-1">Múltiple Selección</span></div><button onClick={() => setModal(null)} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button></div>
+              <div className="flex justify-between items-center mb-6 px-2 text-left"><div className="flex flex-col"><h3 className="font-black text-cyan-400 uppercase tracking-widest text-sm">Causas Reversibles</h3><span className="text-[9px] font-bold text-slate-500 uppercase mt-1">Múltiple Selección</span></div><button onClick={closeModal} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button></div>
               <div className="flex-1 overflow-y-auto space-y-2.5 scrollbar-hide pr-1">
                  {CAUSAS_PALS_DATA.map(c => {
                    const hechos = c.manejos.filter(m => causasRealizadas.includes(m.id)).length;
@@ -880,7 +880,7 @@ export default function PalsMonitor() {
           {modal === 'finish' && (
             <div className="bg-slate-900 border border-red-500/20 w-full max-w-xs rounded-[40px] p-8 shadow-2xl text-center">
                <AlertTriangle size={48} className="text-red-500 animate-pulse mx-auto mb-6" /><h3 className="text-white font-black uppercase text-sm mb-3 leading-tight text-center">¿Finalizar Reanimación?</h3><p className="text-slate-500 text-[10px] font-bold uppercase mb-8 leading-relaxed text-center">Se consolidará la Epicrisis Médica PALS final.</p>
-               <div className="grid grid-cols-2 gap-4"><button onClick={() => setModal(null)} className="py-4 bg-slate-800 text-slate-400 rounded-3xl text-[10px] uppercase font-black active:scale-90 shadow-sm border border-white/5">No</button><button onClick={() => { setIsActive(false); setResultadoFinal('MANIOBRAS FINALIZADAS'); setModal('export'); speak("Sesión terminada."); }} className="py-4 bg-red-600 text-white rounded-3xl text-[10px] uppercase font-black shadow-xl active:scale-90 transition-all border-b-4 border-red-900">Finalizar</button></div>
+               <div className="grid grid-cols-2 gap-4"><button onClick={closeModal} className="py-4 bg-slate-800 text-slate-400 rounded-3xl text-[10px] uppercase font-black active:scale-90 shadow-sm border border-white/5">No</button><button onClick={() => { setIsActive(false); setResultadoFinal('MANIOBRAS FINALIZADAS'); setModal('export'); speak("Sesión terminada."); }} className="py-4 bg-red-600 text-white rounded-3xl text-[10px] uppercase font-black shadow-xl active:scale-90 transition-all border-b-4 border-red-900">Finalizar</button></div>
             </div>
           )}
           

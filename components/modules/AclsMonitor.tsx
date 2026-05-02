@@ -211,6 +211,7 @@ export default function AclsMonitor() {
   }, [])
 
   useEffect(() => { window.addEventListener('tutorial-close-modal', closeAllAclsModals); return () => window.removeEventListener('tutorial-close-modal', closeAllAclsModals) }, [closeAllAclsModals])
+  const safeCloseModal = (setter: (v: boolean) => void) => { if (!tutorialActive.current) setter(false) }
 
   const [tempGlucemia, setTempGlucemia] = useState('');
   const [tempVolume, setTempVolume] = useState('');
@@ -284,7 +285,7 @@ export default function AclsMonitor() {
       } else speak("Glucemia registrada.");
     }
     setTempGlucemia('');
-    setShowGlucemiaModal(false);
+    if (!tutorialActive.current) setShowGlucemiaModal(false);
   };
 
   const triggerVolumeInput = (item: any) => {
@@ -305,29 +306,29 @@ export default function AclsMonitor() {
     }
     setTempVolume('');
     setSelectedLiquidForVol(null);
-    setShowVolumeInputModal(false);
-    setShowLiquidosModal(false);
-    setShowHemoderivadosModal(false);
+    if (!tutorialActive.current) setShowVolumeInputModal(false);
+    if (!tutorialActive.current) setShowLiquidosModal(false);
+    if (!tutorialActive.current) setShowHemoderivadosModal(false);
   };
 
   const handleVasoSelect = (vaso: string) => {
     setVasopresores(prev => [...prev, vaso]);
     addLog(`INFUSIÓN: ${vaso.toUpperCase()} INICIADA`, "DOSIS");
     speak(`Infusión de ${vaso} iniciada.`);
-    setShowVasoModal(false);
+    if (!tutorialActive.current) setShowVasoModal(false);
   };
 
   const handleProcedimiento = (name: string) => {
     addLog(`PROCEDIMIENTO: ${name.toUpperCase()}`, "SUCCESS");
     speak(`${name} realizado correctamente`);
-    setShowH5TModal(false);
+    if (!tutorialActive.current) setShowH5TModal(false);
   };
 
   const handleAdminBicarb = (cant: number, desc: string) => {
     setBicarbonatos(prev => prev + cant);
     addLog(`BICARBONATO: ${desc}`, "DOSIS");
     speak("Bicarbonato administrado.");
-    setShowBicarbModal(false);
+    if (!tutorialActive.current) setShowBicarbModal(false);
   };
 
   const handleAdminPotassium = (mEq: number, vol: number) => {
@@ -335,14 +336,14 @@ export default function AclsMonitor() {
     setLiquidosTotales(prev => [...prev, entry]);
     addLog(`POTASIO: ${mEq}mEq ADMINISTRADO`, "DOSIS");
     speak("Potasio administrado.");
-    setShowPotassiumModal(false);
+    if (!tutorialActive.current) setShowPotassiumModal(false);
   };
 
   const handleAdminAntidote = (ant: any) => {
     setAntidotosAdmin(prev => [...prev, ant.nombre]);
     addLog(`ANTIDOTO: ${ant.nombre.toUpperCase()}`, "DOSIS");
     speak(`${ant.nombre} administrado.`);
-    setShowToxinsModal(false);
+    if (!tutorialActive.current) setShowToxinsModal(false);
   };
 
   const handleTOTSelect = (size: number) => {
@@ -350,7 +351,7 @@ export default function AclsMonitor() {
     setMode('CONTINUA');
     addLog(`VÍA AÉREA: TOT #${size} CONFIRMADO — COMPRESIONES CONTINUAS 100-120/MIN`, "SUCCESS");
     speak(`Tubo endotraqueal número ${size} posicionado. Compresiones continuas.`);
-    setShowTOTModal(false);
+    if (!tutorialActive.current) setShowTOTModal(false);
   };
 
   const handleStartRCPMode = (m: string) => {
@@ -737,7 +738,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-10 rounded-[50px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
              <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
                 <h3 className="font-black uppercase text-sm text-emerald-400 tracking-widest flex items-center gap-3"><CircleDot size={20}/> Tubo Oro-Traqueal</h3>
-                <button onClick={() => setShowTOTModal(false)} className="bg-slate-800 p-3 rounded-full hover:bg-slate-700 transition-colors"><XCircle size={24}/></button>
+                <button onClick={() => safeCloseModal(setShowTOTModal)} className="bg-slate-800 p-3 rounded-full hover:bg-slate-700 transition-colors"><XCircle size={24}/></button>
              </div>
              <div className="grid grid-cols-2 gap-4">
                {[6.5, 7.0, 7.5, 8.0, 8.5, 9.0].map(size => (
@@ -764,18 +765,18 @@ export default function AclsMonitor() {
           <div className="w-full max-w-xl bg-slate-950 rounded-[50px] border border-slate-800 flex flex-col h-full max-h-[85vh] overflow-hidden shadow-2xl animate-in slide-in-from-bottom-12">
             <div className="p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 shrink-0">
               <div className="flex items-center gap-4 font-black text-lg uppercase text-indigo-400 tracking-widest"><ShieldAlert size={24}/> Causas Reversibles</div>
-              <button onClick={() => setShowH5TModal(false)} className="bg-slate-800 p-3 rounded-full hover:bg-slate-700 transition-colors"><XCircle size={28}/></button>
+              <button onClick={() => safeCloseModal(setShowH5TModal)} className="bg-slate-800 p-3 rounded-full hover:bg-slate-700 transition-colors"><XCircle size={28}/></button>
             </div>
             <div className="flex-1 overflow-y-auto p-8 space-y-10 pb-16">
               <section>
                 <h3 className="text-xs font-black uppercase text-emerald-400 border-l-4 border-emerald-500 pl-5 mb-6 tracking-widest">Protocolo de las "H"</h3>
                 <div className="grid gap-4">
                   {[
-                    { id: 'h_v', title: 'Hipovolemia', action: () => { setShowLiquidosModal(true); setShowH5TModal(false); }, icon: <Droplet size={18}/> },
-                    { id: 'h_x', title: 'Hipoxia', action: () => { setShowTOTModal(true); setShowH5TModal(false); }, icon: <Wind size={18}/> },
-                    { id: 'h_a', title: 'Acidosis (H+)', action: () => { setShowBicarbModal(true); setShowH5TModal(false); }, icon: <FlaskConical size={18}/> },
-                    { id: 'h_k', title: 'Hipo/Hiper K+', action: () => { setShowPotassiumModal(true); setShowH5TModal(false); }, icon: <Activity size={18}/> },
-                    { id: 'h_g', title: 'Hipoglucemia', action: () => { setShowGlucemiaModal(true); setShowH5TModal(false); }, icon: <Activity size={18}/> }
+                    { id: 'h_v', title: 'Hipovolemia', action: () => { setShowLiquidosModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <Droplet size={18}/> },
+                    { id: 'h_x', title: 'Hipoxia', action: () => { setShowTOTModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <Wind size={18}/> },
+                    { id: 'h_a', title: 'Acidosis (H+)', action: () => { setShowBicarbModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <FlaskConical size={18}/> },
+                    { id: 'h_k', title: 'Hipo/Hiper K+', action: () => { setShowPotassiumModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <Activity size={18}/> },
+                    { id: 'h_g', title: 'Hipoglucemia', action: () => { setShowGlucemiaModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <Activity size={18}/> }
                   ].map(item => (
                     <button key={item.id} onClick={item.action} className="flex items-center justify-between p-6 rounded-[32px] border bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-500 transition-all active:scale-[0.98]">
                       <div className="flex items-center gap-5"><div className="p-3 rounded-2xl bg-slate-800 text-slate-400">{item.icon}</div><span className="font-black uppercase text-xs tracking-wider">{item.title}</span></div>
@@ -790,8 +791,8 @@ export default function AclsMonitor() {
                   {[
                     { id: 't_n', title: 'Neumotórax a Tensión', action: () => requestConfirmation('T_N', () => handleProcedimiento("Toracocentesis"), "toracocentesis"), icon: <ArrowDownToLine size={18}/> },
                     { id: 't_p', title: 'Taponamiento Card.', action: () => requestConfirmation('T_P', () => handleProcedimiento("Pericardiocentesis"), "pericardiocentesis"), icon: <Stethoscope size={18}/> },
-                    { id: 't_x', title: 'Toxinas (T.O.D)', action: () => { setShowToxinsModal(true); setShowH5TModal(false); }, icon: <Pill size={18}/> },
-                    { id: 't_l', title: 'Trombosis Pulmonar', action: () => { setShowTrombolisisModal(true); setShowH5TModal(false); }, icon: <AlertTriangle size={18}/> }
+                    { id: 't_x', title: 'Toxinas (T.O.D)', action: () => { setShowToxinsModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <Pill size={18}/> },
+                    { id: 't_l', title: 'Trombosis Pulmonar', action: () => { setShowTrombolisisModal(true); if (!tutorialActive.current) setShowH5TModal(false); }, icon: <AlertTriangle size={18}/> }
                   ].map(item => (
                     <button key={item.id} onClick={item.action} className={`flex items-center justify-between p-6 rounded-[32px] border transition-all relative overflow-hidden active:scale-[0.98] ${pendingConfirm === item.id ? 'bg-amber-500 border-amber-400 text-black animate-pulse' : 'bg-slate-900 border-slate-800 text-slate-300'}`}>
                       <div className="flex items-center gap-5"><div className="p-3 rounded-2xl bg-slate-800 text-slate-400">{item.icon}</div><span className="font-black uppercase text-xs tracking-wider">{pendingConfirm === item.id ? '¿CONFIRMAR?' : item.title}</span></div>
@@ -831,7 +832,7 @@ export default function AclsMonitor() {
                 {pendingConfirm === 'ENTRY' && <div className="absolute bottom-0 left-0 h-1.5 bg-black/30 animate-shrink-width" />}
               </button>
             </div>
-            <button onClick={() => { setShowGlucemiaModal(false); setShowVolumeInputModal(false); }} className="w-full mt-8 text-slate-600 font-black uppercase text-[10px] tracking-widest">Cerrar</button>
+            <button onClick={() => { if (!tutorialActive.current) setShowGlucemiaModal(false); if (!tutorialActive.current) setShowVolumeInputModal(false); }} className="w-full mt-8 text-slate-600 font-black uppercase text-[10px] tracking-widest">Cerrar</button>
           </div>
         </div>
       )}
@@ -842,7 +843,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-10 rounded-[50px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
               <h3 className="font-black uppercase text-sm text-blue-400 tracking-widest flex items-center gap-3"><Droplets size={20}/> Cristaloides</h3>
-              <button onClick={() => setShowLiquidosModal(false)} className="bg-slate-800 p-3 rounded-full"><XCircle size={24}/></button>
+              <button onClick={() => safeCloseModal(setShowLiquidosModal)} className="bg-slate-800 p-3 rounded-full"><XCircle size={24}/></button>
             </div>
             <div className="grid gap-4 max-h-[50vh] overflow-y-auto pr-2">
               {TIPOS_LIQUIDOS.map(liq => (
@@ -862,7 +863,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-emerald-400 tracking-widest flex items-center gap-3"><FlaskConical size={20}/> Acidosis (H+)</h3>
-              <button onClick={() => setShowBicarbModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+              <button onClick={() => safeCloseModal(setShowBicarbModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
             <div className="space-y-3">
               {[
@@ -887,7 +888,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-amber-400 tracking-widest flex items-center gap-3"><Activity size={20}/> Hipo/Hiper K+</h3>
-              <button onClick={() => setShowPotassiumModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+              <button onClick={() => safeCloseModal(setShowPotassiumModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
             <p className="text-[10px] text-slate-500 font-bold uppercase mb-4">Hipercalemia</p>
             <div className="space-y-2 mb-5">
@@ -897,7 +898,7 @@ export default function AclsMonitor() {
                 { label: 'NaHCO₃ 50 mEq', desc: 'Bicarbonato IV (shift K+)', id: 'bicarb_k' },
                 { label: 'Salbutamol nebulizado', desc: '10-20 mg nebulizado (shift K+)', id: 'salb' },
               ].map(d => (
-                <button key={d.id} onClick={() => { addLog(`K+ MANEJO: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); setShowPotassiumModal(false); }}
+                <button key={d.id} onClick={() => { addLog(`K+ MANEJO: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); if (!tutorialActive.current) setShowPotassiumModal(false); }}
                   className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left">
                   <div><span className="block text-xs font-black text-white">{d.label}</span><span className="block text-[9px] text-slate-400 mt-0.5">{d.desc}</span></div>
                   <ChevronRight size={16} className="text-slate-600" />
@@ -911,7 +912,7 @@ export default function AclsMonitor() {
                 { label: 'KCl 20 mEq/h IV', desc: 'Hipocalemia severa (K+ < 2.5)', id: 'kcl_20' },
                 { label: 'MgSO₄ 2g IV', desc: 'Sulfato de Magnesio (co-factor)', id: 'mg_k' },
               ].map(d => (
-                <button key={d.id} onClick={() => { addLog(`K+ MANEJO: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); setShowPotassiumModal(false); }}
+                <button key={d.id} onClick={() => { addLog(`K+ MANEJO: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); if (!tutorialActive.current) setShowPotassiumModal(false); }}
                   className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left">
                   <div><span className="block text-xs font-black text-white">{d.label}</span><span className="block text-[9px] text-slate-400 mt-0.5">{d.desc}</span></div>
                   <ChevronRight size={16} className="text-slate-600" />
@@ -928,7 +929,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-rose-400 tracking-widest flex items-center gap-3"><AlertTriangle size={20}/> Trombosis Pulmonar</h3>
-              <button onClick={() => setShowTrombolisisModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+              <button onClick={() => safeCloseModal(setShowTrombolisisModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
             <p className="text-[10px] text-slate-400 font-medium mb-4">Trombolíticos — administrar durante RCP si se sospecha TEP masivo</p>
             <div className="space-y-3">
@@ -938,7 +939,7 @@ export default function AclsMonitor() {
                 { label: 'Alteplase 100 mg', desc: '100 mg IV en 2 horas (protocolo estándar)', id: 'tpa100' },
                 { label: 'Heparina bolo', desc: '80 UI/kg bolo IV (anticoagulación)', id: 'hep' },
               ].map(d => (
-                <button key={d.id} onClick={() => { addLog(`TROMBOLISIS: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); setShowTrombolisisModal(false); }}
+                <button key={d.id} onClick={() => { addLog(`TROMBOLISIS: ${d.label}`, "DOSIS"); speak(`${d.label} administrado.`); if (!tutorialActive.current) setShowTrombolisisModal(false); }}
                   className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-rose-500/30 transition-all active:scale-[0.98] text-left">
                   <div><span className="block text-xs font-black text-white">{d.label}</span><span className="block text-[9px] text-slate-400 mt-0.5">{d.desc}</span></div>
                   <ChevronRight size={16} className="text-slate-600" />
@@ -955,11 +956,11 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-purple-400 tracking-widest flex items-center gap-3"><Pill size={20}/> Toxinas — Antídotos</h3>
-              <button onClick={() => setShowToxinsModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+              <button onClick={() => safeCloseModal(setShowToxinsModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
             <div className="space-y-3">
               {ANTIDOTOS_DATA.map(a => (
-                <button key={a.id} onClick={() => { addLog(`ANTÍDOTO: ${a.nombre} (${a.indicacion}) — ${a.dosis}`, "DOSIS"); speak(`${a.nombre} administrado.`); setShowToxinsModal(false); }}
+                <button key={a.id} onClick={() => { addLog(`ANTÍDOTO: ${a.nombre} (${a.indicacion}) — ${a.dosis}`, "DOSIS"); speak(`${a.nombre} administrado.`); if (!tutorialActive.current) setShowToxinsModal(false); }}
                   className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-purple-500/30 transition-all active:scale-[0.98] text-left">
                   <div><span className="block text-xs font-black text-white">{a.nombre}</span><span className="block text-[9px] text-slate-400 mt-0.5">{a.indicacion} — {a.dosis}</span></div>
                   <ChevronRight size={16} className="text-slate-600" />
@@ -976,7 +977,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-rose-400 tracking-widest flex items-center gap-3"><Droplets size={20}/> Hemoderivados</h3>
-              <button onClick={() => setShowHemoderivadosModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+              <button onClick={() => safeCloseModal(setShowHemoderivadosModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
             <p className="text-[10px] text-slate-500 font-bold mb-4">Cada toque = 1 unidad administrada</p>
             <div className="space-y-3">
@@ -1013,7 +1014,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
               <h3 className="font-black uppercase text-sm text-cyan-400 tracking-widest flex items-center gap-3"><Syringe size={20}/> Acceso Venoso</h3>
-              <button onClick={() => setShowAccesoModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+              <button onClick={() => safeCloseModal(setShowAccesoModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
             </div>
             <div className="space-y-3">
               {[
@@ -1054,7 +1055,7 @@ export default function AclsMonitor() {
             <div className="space-y-4">
               <button onClick={() => handleFinishProtocol("ROSC / RCE (SUPERVIVENCIA)")} className="w-full py-6 bg-emerald-600 border-b-4 border-emerald-800 rounded-3xl font-black uppercase text-sm shadow-xl active:translate-y-1 transition-all">RETORNO A CIRCULACIÓN (ROSC)</button>
               <button onClick={() => handleFinishProtocol("CESE DE MANIOBRAS (FALLECIMIENTO)")} className="w-full py-6 bg-slate-800 border-b-4 border-slate-950 rounded-3xl font-black uppercase text-sm border border-slate-700 shadow-xl active:translate-y-1 transition-all">CESE DE MANIOBRAS</button>
-              <button onClick={() => setShowFinishModal(false)} className="text-slate-500 text-[11px] font-black uppercase pt-8 block mx-auto tracking-widest hover:text-slate-300">Regresar al monitor</button>
+              <button onClick={() => safeCloseModal(setShowFinishModal)} className="text-slate-500 text-[11px] font-black uppercase pt-8 block mx-auto tracking-widest hover:text-slate-300">Regresar al monitor</button>
             </div>
           </div>
         </div>
@@ -1069,7 +1070,7 @@ export default function AclsMonitor() {
                 <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl text-indigo-400"><ClipboardList size={22}/></div>
                 <h2 className="text-base font-black uppercase tracking-tight text-white">Evolución Médica ACLS</h2>
               </div>
-              <button onClick={() => setShowExportModal(false)} className="bg-slate-800 p-2 rounded-full text-slate-400"><XCircle size={22} /></button>
+              <button onClick={() => safeCloseModal(setShowExportModal)} className="bg-slate-800 p-2 rounded-full text-slate-400"><XCircle size={22} /></button>
             </div>
 
             <div className="flex gap-1.5 mb-4 shrink-0">
@@ -1114,7 +1115,7 @@ export default function AclsMonitor() {
           <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-[32px] p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-black uppercase text-sm">Soporte Farmacológico</h3>
-              <button onClick={() => setShowVasoModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22} className="text-slate-400" /></button>
+              <button onClick={() => safeCloseModal(setShowVasoModal)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22} className="text-slate-400" /></button>
             </div>
             
             <div className="mb-5">
@@ -1144,7 +1145,7 @@ export default function AclsMonitor() {
                   { id: 'propofol', label: 'Propofol', dose: '1-2 mg/kg IV' },
                   { id: 'ketamina', label: 'Ketamina', dose: '1-2 mg/kg IV' },
                 ].map(d => (
-                  <button key={d.id} onClick={() => { addLog(`SEDO: ${d.label.toUpperCase()} - ${d.dose}`, "DOSIS"); speak(`${d.label} administrado.`); setShowVasoModal(false); }}
+                  <button key={d.id} onClick={() => { addLog(`SEDO: ${d.label.toUpperCase()} - ${d.dose}`, "DOSIS"); speak(`${d.label} administrado.`); if (!tutorialActive.current) setShowVasoModal(false); }}
                     className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl text-left active:scale-95 hover:bg-cyan-500/20 transition-all">
                     <span className="block text-xs font-black text-white">{d.label}</span>
                     <span className="block text-[9px] text-cyan-300 mt-0.5">{d.dose}</span>
@@ -1162,7 +1163,7 @@ export default function AclsMonitor() {
                   { id: 'atropina', label: 'Atropina', dose: '1 mg IV c/3-5 min' },
                   { id: 'magnesio', label: 'Sulfato Mg', dose: '1-2g IV en 15 min' },
                 ].map(d => (
-                  <button key={d.id} onClick={() => { addLog(`MED RCP: ${d.label.toUpperCase()} - ${d.dose}`, "DOSIS"); speak(`${d.label} administrado.`); setShowVasoModal(false); }}
+                  <button key={d.id} onClick={() => { addLog(`MED RCP: ${d.label.toUpperCase()} - ${d.dose}`, "DOSIS"); speak(`${d.label} administrado.`); if (!tutorialActive.current) setShowVasoModal(false); }}
                     className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left active:scale-95 hover:bg-amber-500/20 transition-all">
                     <span className="block text-xs font-black text-white">{d.label}</span>
                     <span className="block text-[9px] text-amber-300 mt-0.5">{d.dose}</span>
