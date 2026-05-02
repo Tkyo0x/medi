@@ -3,7 +3,7 @@ import {
   Zap, Syringe, Clock, Volume2, VolumeX, Heart,
   Pause, Play, XCircle, ShieldAlert,
   Power, Droplets, RefreshCcw, Activity,
-  Check, Mail, MessageCircle, ChevronRight,
+  Check, CheckCircle2, Mail, MessageCircle, ChevronRight,
   TrendingUp, ClipboardList, Droplet,
   Biohazard, CircleDot, ArrowDownToLine, 
   Wind, FlaskConical, Stethoscope, Thermometer,
@@ -182,6 +182,8 @@ export default function AclsMonitor() {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [reportTab, setReportTab] = useState('resumen');
+  const [accesosVenosos, setAccesosVenosos] = useState<string[]>([]);
+  const [showAccesoModal, setShowAccesoModal] = useState(false);
   const [showH5TModal, setShowH5TModal] = useState(false);
   const [showGlucemiaModal, setShowGlucemiaModal] = useState(false);
   const [showLiquidosModal, setShowLiquidosModal] = useState(false);
@@ -329,8 +331,9 @@ export default function AclsMonitor() {
 
   const handleTOTSelect = (size: number) => {
     setTotSize(size);
-    addLog(`VÍA AÉREA: TOT #${size} CONFIRMADO`, "SUCCESS");
-    speak(`Tubo endotraqueal número ${size} posicionado.`);
+    setMode('CONTINUA');
+    addLog(`VÍA AÉREA: TOT #${size} CONFIRMADO — COMPRESIONES CONTINUAS 100-120/MIN`, "SUCCESS");
+    speak(`Tubo endotraqueal número ${size} posicionado. Compresiones continuas.`);
     setShowTOTModal(false);
   };
 
@@ -394,6 +397,7 @@ export default function AclsMonitor() {
            `• Adrenalina: x${adrenalinas}\n` +
            `• Volumen Total: ${totalVolumen}mL\n` +
            `• Vía Aérea: ${totSize ? `TOT #${totSize}` : 'No avanzada'}\n` +
+           `• Accesos Venosos: ${accesosVenosos.length > 0 ? accesosVenosos.map(a => a.replace(/_/g, ' ')).join(', ') : 'No registrados'}\n` +
            `${vasopresores.length > 0 ? `• Vasopresores: ${vasopresores.join(', ')}\n` : ''}` +
            `\nBITÁCORA CRONOLÓGICA:\n` +
            `${[...logs].reverse().map(l => `[${l.time}] ${l.msg}`).join('\n')}`;
@@ -407,7 +411,11 @@ export default function AclsMonitor() {
     if (desfibrilaciones > 0) e += ` Se identifican ritmos desfibrilables, realizándose ${desfibrilaciones} descarga${desfibrilaciones > 1 ? 's' : ''} eléctrica${desfibrilaciones > 1 ? 's' : ''}.`
     if (adrenalinas > 0) e += ` Se administra${adrenalinas > 1 ? 'n' : ''} ${adrenalinas} dosis de adrenalina 1mg IV/IO.`
     if (bicarbonatos > 0) e += ` Se administra bicarbonato de sodio.`
-    if (totSize) e += ` Se asegura vía aérea avanzada con tubo endotraqueal #${totSize}.`
+    if (totSize) e += ` Se asegura vía aérea avanzada con tubo endotraqueal #${totSize}, pasando a compresiones continuas 100-120/minuto.`
+    if (accesosVenosos.length > 0) {
+      const labels: Record<string, string> = { periferico: 'acceso venoso periférico', central_yugular: 'catéter venoso central yugular', central_subclavio: 'catéter venoso central subclavio', central_femoral: 'catéter venoso central femoral', intraoseo: 'acceso intraóseo' }
+      e += ` Accesos vasculares obtenidos: ${accesosVenosos.map(a => labels[a] || a).join(', ')}.`
+    }
     if (vasopresores.length > 0) e += ` Soporte vasopresor iniciado: ${vasopresores.join(', ')}.`
     const totalVol = liquidosTotales.reduce((a, c) => a + (c.volumen || 0), 0)
     if (totalVol > 0) e += ` Volumen total administrado: ${totalVol} mL.`
@@ -618,6 +626,10 @@ export default function AclsMonitor() {
           
           <button onClick={() => setShowGlucemiaModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-amber-500 active:bg-amber-500/10 active:scale-95 shadow-md">
             <Activity size={18}/> <span className="text-[8px] font-black uppercase">Glucemia</span>
+          </button>
+
+          <button onClick={() => setShowAccesoModal(true)} className={`h-14 border rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md transition-all ${accesosVenosos.length > 0 ? 'bg-cyan-600 border-cyan-400 text-white border-b-4 border-cyan-800' : 'bg-slate-900 border-slate-800 text-cyan-400'}`}>
+            <Syringe size={18}/> <span className="text-[8px] font-black uppercase">Acceso {accesosVenosos.length > 0 ? `(${accesosVenosos.length})` : ''}</span>
           </button>
 
           <button onClick={() => setShowTOTModal(true)} className={`h-14 border rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md transition-all ${totSize ? 'bg-indigo-600 border-indigo-400 text-white border-b-4 border-indigo-800' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>
@@ -971,6 +983,45 @@ export default function AclsMonitor() {
                     ) : (
                       <span className="text-[10px] font-bold text-slate-600">Tocar = 1U</span>
                     )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ACCESO VENOSO MODAL */}
+      {showAccesoModal && (
+        <div className="fixed inset-0 z-[1500] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-700 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+              <h3 className="font-black uppercase text-sm text-cyan-400 tracking-widest flex items-center gap-3"><Syringe size={20}/> Acceso Venoso</h3>
+              <button onClick={() => setShowAccesoModal(false)} className="bg-slate-800 p-2 rounded-full"><XCircle size={22}/></button>
+            </div>
+            <div className="space-y-3">
+              {[
+                { id: 'periferico', label: 'Acceso Venoso Periférico', desc: 'Catéter IV periférico (antebrazo, mano)', icon: '💉' },
+                { id: 'central_yugular', label: 'Venoso Central — Yugular', desc: 'Catéter venoso central yugular interno', icon: '🔴' },
+                { id: 'central_subclavio', label: 'Venoso Central — Subclavio', desc: 'Catéter venoso central subclavio', icon: '🔴' },
+                { id: 'central_femoral', label: 'Venoso Central — Femoral', desc: 'Catéter venoso central femoral', icon: '🔴' },
+                { id: 'intraoseo', label: 'Acceso Intraóseo (IO)', desc: 'Tibial proximal / Humeral proximal', icon: '🦴' },
+              ].map(a => {
+                const done = accesosVenosos.includes(a.id);
+                return (
+                  <button key={a.id} onClick={() => {
+                    if (!done) {
+                      setAccesosVenosos(prev => [...prev, a.id]);
+                      addLog(`ACCESO: ${a.label.toUpperCase()}`, "SUCCESS");
+                      speak(`${a.label} establecido.`);
+                    }
+                  }}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] text-left ${done ? 'bg-cyan-600/20 border-cyan-500/30' : 'bg-slate-800/50 border-slate-800 hover:border-cyan-500/30'}`}>
+                    <div>
+                      <span className="block text-xs font-black text-white">{a.icon} {a.label}</span>
+                      <span className="block text-[9px] text-slate-400 mt-0.5">{a.desc}</span>
+                    </div>
+                    {done && <CheckCircle2 size={18} className="text-cyan-400 shrink-0" />}
                   </button>
                 );
               })}
