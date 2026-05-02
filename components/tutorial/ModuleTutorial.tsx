@@ -71,7 +71,7 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
     const step = steps[stepIdx]
     if (!step) { markComplete(); return }
 
-    if (step.closeModal !== false) requestModalClose()
+    if (step.closeModal === true) requestModalClose()
 
     const t = setTimeout(updateHighlight, 450)
     return () => clearTimeout(t)

@@ -466,7 +466,7 @@ export default function NalsMonitor() {
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
               <div className="flex justify-between items-center mb-4"><h3 className="text-white font-black uppercase text-sm tracking-tight">Escalas Neonatales</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto scrollbar-hide">
-                <div className="bg-indigo-500/[0.06] border border-indigo-500/15 p-5 rounded-2xl">
+                <div data-tutorial="nals-apgar-calc" className="bg-indigo-500/[0.06] border border-indigo-500/15 p-5 rounded-2xl">
                   <h4 className="text-indigo-400 font-black uppercase text-[9px] mb-3 tracking-wider">Calculadora APGAR</h4>
                   {Object.entries(APGAR).map(([k, c]) => (
                     <div key={k} className="mb-3">
@@ -481,10 +481,10 @@ export default function NalsMonitor() {
                   ))}
                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/[0.06]">
                     <div><span className="text-2xl font-black text-white">{apgarTotal}</span><span className="text-sm font-bold text-slate-500">/10</span></div>
-                    <button onClick={saveApgar} className={`bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-black text-[9px] uppercase shadow-lg shadow-indigo-600/20 ${B}`}>Guardar</button>
+                    <button data-tutorial="nals-apgar-save" onClick={saveApgar} className={`bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-black text-[9px] uppercase shadow-lg shadow-indigo-600/20 ${B}`}>Guardar</button>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div data-tutorial="nals-sarnat" className="space-y-2">
                   <h4 className="text-blue-400 font-black uppercase text-[9px] tracking-wider mb-2">Clasificación Sarnat</h4>
                   {SARNAT.map((s, i) => (
                     <button key={i} onClick={() => saveSarnat(s)} className={`w-full bg-white/[0.02] border ${s.border} p-4 rounded-2xl text-left transition-all ${B}`}>
@@ -501,14 +501,14 @@ export default function NalsMonitor() {
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
               <div className="flex justify-between items-center mb-5 shrink-0"><h3 className="text-white font-black uppercase text-sm tracking-tight">Farmacología</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto scrollbar-hide flex-1">
-                <div className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
+                <div data-tutorial="nals-glicemia" className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
                   <div className="flex items-center gap-2 mb-3"><TestTube className="text-blue-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Glicemia</span></div>
                   <div className="flex gap-2">
                     <input type="number" value={glicInput} onChange={e => setGlicInput(e.target.value)} placeholder="mg/dL" className="flex-1 bg-black/30 border border-white/[0.06] rounded-xl px-4 py-3 text-white font-black focus:outline-none focus:border-blue-500/50 text-sm placeholder:text-slate-600" />
                     <button onClick={saveGlic} className={`p-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 ${B}`}><Check size={16} /></button>
                   </div>
                 </div>
-                <div className="bg-white/[0.03] p-4 rounded-2xl border border-emerald-500/15">
+                <div data-tutorial="nals-epi" className="bg-white/[0.03] p-4 rounded-2xl border border-emerald-500/15">
                   <div className="flex items-center gap-2 mb-3"><Syringe className="text-emerald-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Adrenalina 1:10,000 (0.01-0.03 mg/kg)</span></div>
                   <div className="grid grid-cols-3 gap-2">
                     <button onClick={() => giveDrug('Adrenalina IV/CVU', dose.epiLow + '-' + dose.epiHigh + ' ml', 'IV/CVU')} className={`p-3.5 bg-gradient-to-b from-emerald-600 to-emerald-500 rounded-xl text-white shadow-lg shadow-emerald-600/15 ${B}`}><span className="block text-[9px] font-black uppercase mb-0.5">IV / CVU</span><span className="block text-[8px] text-emerald-100">{dose.epiLow}-{dose.epiHigh} ml</span></button>
@@ -516,7 +516,7 @@ export default function NalsMonitor() {
                     <button onClick={() => giveDrug('Adrenalina ET', dose.epiET + ' ml', 'ET')} className={`p-3.5 bg-white/[0.04] border border-white/[0.06] rounded-xl text-white hover:bg-white/[0.06] ${B}`}><span className="block text-[9px] font-black uppercase mb-0.5">Vía ET</span><span className="block text-[8px] text-slate-400">{dose.epiET} ml</span></button>
                   </div>
                 </div>
-                <div className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
+                <div data-tutorial="nals-liquidos" className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
                   <div className="flex items-center gap-2 mb-3"><Droplets className="text-blue-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Líquidos</span></div>
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => giveFluid('Bolo Salino', dose.bolus)} className={`p-3.5 bg-gradient-to-b from-blue-600 to-blue-500 rounded-xl text-white shadow-lg shadow-blue-600/15 ${B}`}><span className="block text-[10px] font-black uppercase mb-0.5">Bolo Salino</span><span className="block text-[9px] text-blue-100">{dose.bolus} ml</span></button>
@@ -531,7 +531,7 @@ export default function NalsMonitor() {
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl">
               <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">MR. SOPA + Causas</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto max-h-[70vh] scrollbar-hide">
-                <div className="grid grid-cols-3 gap-2">
+                <div data-tutorial="nals-sopa" className="grid grid-cols-3 gap-2">
                   {SOPA.map(s => (
                     <button key={s.id} onClick={() => { if (!sopa.includes(s.id)) { setSopa(p => [...p, s.id]); log(`SOPA: [${s.id}]`, 'TECH'); say(`Paso ${s.id}`) } }}
                       className={`p-3 rounded-2xl border flex flex-col items-center gap-1 ${B} ${sopa.includes(s.id) ? 'bg-indigo-600/20 border-indigo-400/30 text-indigo-300' : 'bg-white/[0.02] border-white/[0.06] text-slate-500 hover:text-slate-300'}`}>
