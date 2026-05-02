@@ -158,13 +158,25 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
 
   const tooltipStyle = (() => {
     if (!highlight) return { left: '50%', top: '50%', transform: 'translate(-50%, -50%)' } as React.CSSProperties
-    const w = 260, m = 10
-    let top = highlight.bottom + m
+    const w = 260, th = 140, m = 10
     let left = Math.max(m, Math.min(highlight.left, vw - w - m))
-    // If below goes off screen, put above
-    if (top + 150 > vh - 50) top = Math.max(m, highlight.top - 150 - m)
-    // If still off, center
-    if (top < m) top = vh / 2 - 75
+    
+    // If target is in lower 60% of screen → put tooltip ABOVE
+    // If target is in upper 40% → put tooltip BELOW
+    const targetCenter = highlight.top + highlight.height / 2
+    let top: number
+    
+    if (targetCenter > vh * 0.4) {
+      // Above the target
+      top = highlight.top - th - m
+      if (top < m) top = m
+    } else {
+      // Below the target
+      top = highlight.bottom + m
+      if (top + th > vh - 50) top = highlight.top - th - m
+      if (top < m) top = m
+    }
+    
     return { left: `${left}px`, top: `${top}px`, width: `${w}px` } as React.CSSProperties
   })()
 

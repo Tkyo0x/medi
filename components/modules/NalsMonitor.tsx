@@ -455,7 +455,7 @@ export default function NalsMonitor() {
           {modal === 'gases' && (
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl">
               <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">Gasimetría</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
-              <div className="grid grid-cols-2 gap-2.5 mb-5">
+              <div data-tutorial="nals-gases-inputs" className="grid grid-cols-2 gap-2.5 mb-5">
                 {Object.keys(gases).map(k => (
                   <div key={k} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-2xl">
                     <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1.5">{k.toUpperCase()}</span>
@@ -463,7 +463,7 @@ export default function NalsMonitor() {
                   </div>
                 ))}
               </div>
-              <button onClick={saveGases} className={`w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl font-black text-[11px] uppercase shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${B}`}><Check size={15} /> Registrar Analítica</button>
+              <button data-tutorial="nals-gases-save" onClick={saveGases} className={`w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl font-black text-[11px] uppercase shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${B}`}><Check size={15} /> Registrar Analítica</button>
             </div>
           )}
 

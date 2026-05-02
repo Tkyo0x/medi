@@ -78,15 +78,28 @@ export const NALS_STEPS: TutorialStep[] = [
   },
   {
     target: 'nals-sarnat',
-    title: 'Clasificación Sarnat',
-    description: 'Si sospechás encefalopatía hipóxico-isquémica, clasificá según Sarnat: Leve (I), Moderada (II) o Severa (III). Queda registrado en la epicrisis.',
+    title: 'Clasificación Sarnat (opcional)',
+    description: 'Clasificá la encefalopatía: Grado I (leve), II (moderada) o III (severa). Tocá la que corresponda o saltá este paso.',
+    closeModal: false,
   },
   // === GASES (abre modal) ===
   {
     target: 'nals-gases',
     title: 'Abrir: Gasimetría Arterial',
-    description: 'Ingresá valores de gases arteriales para documentar el estado ácido-base. Tocá para abrir.',
+    description: 'Documentá el estado ácido-base del neonato. Tocá para abrir el panel de gases.',
     closeModal: true,
+  },
+  {
+    target: 'nals-gases-inputs',
+    title: 'Valores de Gases',
+    description: 'Ingresá los 6 valores: pH, pCO2, pO2, HCO3, Exceso de Base y Lactato. Cada valor queda registrado con hora en la bitácora.',
+    closeModal: false,
+  },
+  {
+    target: 'nals-gases-save',
+    title: 'Registrar Analítica',
+    description: 'Tocá para guardar los gases. Podés registrar múltiples muestras durante la reanimación — cada una queda con su timestamp.',
+    closeModal: false,
   },
   // === DROGAS (abre modal) ===
   {
