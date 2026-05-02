@@ -160,6 +160,12 @@ export default function NalsMonitor() {
     return () => window.removeEventListener('open-tutorial', h)
   }, [setShowTutorial])
 
+  useEffect(() => {
+    const h = () => setModal(null)
+    window.addEventListener('tutorial-close-modal', h)
+    return () => window.removeEventListener('tutorial-close-modal', h)
+  }, [])
+
   const w = useMemo(() => parseFloat(weightStr) || 0, [weightStr])
   const dose = useMemo(() => { const x = Math.max(0.01, w); return { epiLow: (x * 0.1).toFixed(2), epiHigh: (x * 0.3).toFixed(2), epiET: (x * 1.0).toFixed(2), bolus: (x * 10).toFixed(1) } }, [w])
   const min = useMemo(() => Math.floor(elapsed / 60) + 1, [elapsed])
