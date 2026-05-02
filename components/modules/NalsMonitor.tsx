@@ -153,6 +153,8 @@ export default function NalsMonitor() {
   const tRef = useRef<NodeJS.Timeout | null>(null)
   const mRef = useRef<NodeJS.Timeout | null>(null)
   const { showTutorial, setShowTutorial } = useTutorial('nals-monitor')
+  const tutorialActive = useRef(false)
+  useEffect(() => { tutorialActive.current = showTutorial }, [showTutorial])
 
   useEffect(() => {
     const h = () => setShowTutorial(true)
@@ -161,10 +163,13 @@ export default function NalsMonitor() {
   }, [setShowTutorial])
 
   useEffect(() => {
-    const h = () => setModal(null)
+    const h = () => setModal(null) // only tutorial can close modals via this event
     window.addEventListener('tutorial-close-modal', h)
     return () => window.removeEventListener('tutorial-close-modal', h)
   }, [])
+
+  // Block manual modal close (X buttons) during tutorial
+  const closeModal = () => { if (!tutorialActive.current) setModal(null) }
 
   const w = useMemo(() => parseFloat(weightStr) || 0, [weightStr])
   const dose = useMemo(() => { const x = Math.max(0.01, w); return { epiLow: (x * 0.1).toFixed(2), epiHigh: (x * 0.3).toFixed(2), epiET: (x * 1.0).toFixed(2), bolus: (x * 10).toFixed(1) } }, [w])
@@ -195,21 +200,21 @@ export default function NalsMonitor() {
     const { time, elapsed } = ts()
     setDrugs(p => [...p, { nombre, dosis, via, time, elapsed }])
     if (nombre.includes('Adrenalina')) { setEpiSec(0); say(`Adrenalina ${dosis} administrada.`); alert('Adrenalina OK', 'bg-emerald-600') }
-    log(`ADMIN: ${nombre} ${dosis}`, 'DRUG'); setModal(null)
+    log(`ADMIN: ${nombre} ${dosis}`, 'DRUG'); if (!tutorialActive.current) setModal(null)
   }
 
   const giveFluid = (nombre: string, vol: string) => {
     const { time, elapsed } = ts()
     setFluids(p => [...p, { nombre, volumen: vol, time, elapsed }])
-    log(`ADMIN: ${nombre} ${vol}ml`, 'DRUG'); say(`${nombre} administrado.`); alert(`${nombre} OK`, 'bg-blue-600'); setModal(null)
+    log(`ADMIN: ${nombre} ${vol}ml`, 'DRUG'); say(`${nombre} administrado.`); alert(`${nombre} OK`, 'bg-blue-600'); if (!tutorialActive.current) setModal(null)
   }
 
   const rce = () => { setIsActive(false); setIsChecking(false); setResult('RCE / ESTABLE'); log('RCE LOGRADO', 'SYSTEM'); say('Retorno a la circulación espontánea logrado.'); setModal('export') }
   const noReturn = () => { setIsActive(false); setIsChecking(false); setResult('NO RETORNO / FALLECIMIENTO'); setNoRetorno(true); log('NO RETORNO - FALLECIMIENTO', 'SYSTEM'); say('No retorno a circulación espontánea. Fallecimiento.'); setModal('export') }
 
-  const saveApgar = () => { const t = `${Math.floor(elapsed / 60)}'`; setApgarHist(p => [...p, { time: t, score: apgarTotal }]); log(`APGAR [${t}]: ${apgarTotal}/10`, 'TECH'); say(`Apgar: ${apgarTotal}.`); setModal(null) }
-  const saveSarnat = (s: typeof SARNAT[0]) => { setSarnat(s); log(`SARNAT: ${s.stage}`, 'TECH'); say(`Sarnat: ${s.stage}.`); setModal(null) }
-  const saveGases = () => { if (!gases.ph) return; const { time, elapsed } = ts(); setGasHist(p => [{ ...gases, time, elapsed }, ...p]); log(`GASIMETRÍA: pH ${gases.ph}`, 'TECH'); say(`Gases pH ${gases.ph}.`); alert('GASES OK', 'bg-indigo-600'); setModal(null) }
+  const saveApgar = () => { const t = `${Math.floor(elapsed / 60)}'`; setApgarHist(p => [...p, { time: t, score: apgarTotal }]); log(`APGAR [${t}]: ${apgarTotal}/10`, 'TECH'); say(`Apgar: ${apgarTotal}.`); if (!tutorialActive.current) setModal(null) }
+  const saveSarnat = (s: typeof SARNAT[0]) => { setSarnat(s); log(`SARNAT: ${s.stage}`, 'TECH'); say(`Sarnat: ${s.stage}.`); if (!tutorialActive.current) setModal(null) }
+  const saveGases = () => { if (!gases.ph) return; const { time, elapsed } = ts(); setGasHist(p => [{ ...gases, time, elapsed }, ...p]); log(`GASIMETRÍA: pH ${gases.ph}`, 'TECH'); say(`Gases pH ${gases.ph}.`); alert('GASES OK', 'bg-indigo-600'); if (!tutorialActive.current) setModal(null) }
   const causa = (c: string, a: { label: string; msg: string }) => { log(`MANEJO [${c}]: ${a.label}`, 'TECH'); say(a.msg); alert(a.label, 'bg-indigo-600') }
 
   const toggleResp = () => { const c = ['ESFUERZO (+)', 'GASPING', 'APNEA']; const n = c[(c.indexOf(tep.resp) + 1) % c.length]; setTep(t => ({ ...t, resp: n })); if (n !== 'ESFUERZO (+)') say(`Alerta. ${n}.`); log(`RESPIRATORIO: ${n}`, 'SYSTEM') }
@@ -449,7 +454,7 @@ export default function NalsMonitor() {
 
           {modal === 'gases' && (
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl">
-              <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">Gasimetría</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
+              <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">Gasimetría</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="grid grid-cols-2 gap-2.5 mb-5">
                 {Object.keys(gases).map(k => (
                   <div key={k} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-2xl">
@@ -464,7 +469,7 @@ export default function NalsMonitor() {
 
           {modal === 'apgar' && (
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
-              <div className="flex justify-between items-center mb-4"><h3 className="text-white font-black uppercase text-sm tracking-tight">Escalas Neonatales</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
+              <div className="flex justify-between items-center mb-4"><h3 className="text-white font-black uppercase text-sm tracking-tight">Escalas Neonatales</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto scrollbar-hide">
                 <div data-tutorial="nals-apgar-calc" className="bg-indigo-500/[0.06] border border-indigo-500/15 p-5 rounded-2xl">
                   <h4 className="text-indigo-400 font-black uppercase text-[9px] mb-3 tracking-wider">Calculadora APGAR</h4>
@@ -499,7 +504,7 @@ export default function NalsMonitor() {
 
           {modal === 'farmacos' && (
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
-              <div className="flex justify-between items-center mb-5 shrink-0"><h3 className="text-white font-black uppercase text-sm tracking-tight">Farmacología</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
+              <div className="flex justify-between items-center mb-5 shrink-0"><h3 className="text-white font-black uppercase text-sm tracking-tight">Farmacología</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto scrollbar-hide flex-1">
                 <div data-tutorial="nals-glicemia" className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
                   <div className="flex items-center gap-2 mb-3"><TestTube className="text-blue-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Glicemia</span></div>
@@ -529,7 +534,7 @@ export default function NalsMonitor() {
 
           {modal === 'causas' && (
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl">
-              <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">MR. SOPA + Causas</h3><button onClick={() => setModal(null)} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
+              <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">MR. SOPA + Causas</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto max-h-[70vh] scrollbar-hide">
                 <div data-tutorial="nals-sopa" className="grid grid-cols-3 gap-2">
                   {SOPA.map(s => (
