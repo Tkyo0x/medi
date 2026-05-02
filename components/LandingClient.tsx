@@ -254,7 +254,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                   Ver módulos clínicos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </a>
                 <a href="#pricing" className="inline-flex items-center justify-center gap-2 bg-white text-slate-700 px-5 py-3 rounded-xl font-bold text-sm border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm">
-                  $3/módulo/año
+                  {priceTag}/módulo
                 </a>
               </div>
 
@@ -486,7 +486,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 <Sparkles className="w-3 h-3" /> Catálogo Clínico
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 mb-2">Un módulo para cada flujo crítico</h2>
-              <p className="text-sm sm:text-base text-slate-500 font-medium">$3 USD/año por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
+              <p className="text-sm sm:text-base text-slate-500 font-medium">{priceShort} USD/{duration} {durationLabel} por módulo · 72h de prueba gratis · Paga solo lo que uses</p>
             </div>
             <div className="text-sm font-bold text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
               {modules.filter(m => m.status === 'active').length} disponible{modules.filter(m => m.status === 'active').length > 1 ? 's' : ''} · {modules.filter(m => m.status !== 'active').length} en desarrollo
@@ -540,7 +540,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
 
                     {/* Footer */}
                     <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-black text-slate-900">$3 <span className="font-bold text-slate-400">USD/año</span></span>
+                      <span className="text-xs font-black text-slate-900">{priceShort} <span className="font-bold text-slate-400">USD/{duration} {durationLabel}</span></span>
                       {live && !isSignedIn && (
                         <SignInButton mode="modal">
                           <button onClick={e => e.stopPropagation()} className={`text-xs font-black ${c.text} flex items-center gap-1 hover:gap-2 transition-all`}>Probar gratis <ArrowRight className="w-3.5 h-3.5" /></button>
@@ -585,13 +585,13 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 <div className="pt-4 mb-6">
                   <p className="text-sm font-bold text-slate-500 mb-4">Suscripción por módulo</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">$3</span>
+                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">{priceShort}</span>
                     <div className="flex flex-col">
                       <span className="text-lg font-black text-slate-400">USD</span>
-                      <span className="text-xs font-bold text-slate-300 -mt-1">por año</span>
+                      <span className="text-xs font-bold text-slate-300 -mt-1">por {duration} {durationLabel}</span>
                     </div>
                   </div>
-                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ $0.25 USD/mes por módulo</p>
+                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ ${(parseFloat(price) / Math.max(1, parseInt(duration))).toFixed(2)} USD/{durationUnit === 'months' ? 'mes' : durationUnit === 'days' ? 'día' : 'año'} por módulo</p>
                 </div>
 
                 <div className="flex-1 space-y-3.5 mb-8">
@@ -641,7 +641,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                       ) : trial ? (
                         <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 flex items-center gap-1"><Timer className="w-3 h-3" />{trial.hours_left}h</span>
                       ) : live ? (
-                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">$3<span className="text-slate-400 font-bold">/año</span></span>
+                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">{priceShort}<span className="text-slate-400 font-bold">/{duration}{durationUnit === 'months' ? 'm' : durationUnit === 'days' ? 'd' : 'a'}</span></span>
                       ) : (
                         <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">Pronto</span>
                       )}
@@ -818,13 +818,13 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               <p className="text-sm text-slate-500 font-medium mb-5">Tu período de prueba ha terminado</p>
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6">
                 <div className="flex items-baseline justify-center gap-1 mb-0.5">
-                  <span className="text-4xl font-black text-slate-900 tracking-tighter">$3</span>
-                  <span className="text-sm font-black text-slate-400">USD/año</span>
+                  <span className="text-4xl font-black text-slate-900 tracking-tighter">{priceShort}</span>
+                  <span className="text-sm font-black text-slate-400">USD/{duration} {durationLabel}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 font-bold">Acceso a {selectedMod?.name} por 12 meses</p>
               </div>
               <button onClick={handleSubscribe} disabled={isLoading} className="w-full py-3.5 rounded-xl text-sm font-black bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20 transition-all active:scale-[0.98] flex justify-center items-center h-12 mb-3">
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Suscribirse — $3/año'}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Suscribirse — ${priceTag}`}
               </button>
               <button onClick={() => setModal(null)} disabled={isLoading} className="w-full py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all">Volver al catálogo</button>
             </div>
