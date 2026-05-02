@@ -151,34 +151,14 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
     )
   }
 
+
   // ─── PRACTICE ───
   const step = steps[stepIdx]
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 400
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 800
 
-  const tooltipStyle = (() => {
-    if (!highlight) return { left: '50%', top: '50%', transform: 'translate(-50%, -50%)' } as React.CSSProperties
-    const w = 260, th = 140, m = 10
-    let left = Math.max(m, Math.min(highlight.left, vw - w - m))
-    
-    // If target is in lower 60% of screen → put tooltip ABOVE
-    // If target is in upper 40% → put tooltip BELOW
-    const targetCenter = highlight.top + highlight.height / 2
-    let top: number
-    
-    if (targetCenter > vh * 0.4) {
-      // Above the target
-      top = highlight.top - th - m
-      if (top < m) top = m
-    } else {
-      // Below the target
-      top = highlight.bottom + m
-      if (top + th > vh - 50) top = highlight.top - th - m
-      if (top < m) top = m
-    }
-    
-    return { left: `${left}px`, top: `${top}px`, width: `${w}px` } as React.CSSProperties
-  })()
+  // Tooltip at top or bottom of screen — never near the element, never overlaps
+  const tooltipPos: 'top' | 'bottom' = highlight
+    ? (highlight.top < (typeof window !== 'undefined' ? window.innerHeight : 800) * 0.45 ? 'bottom' : 'top')
+    : 'bottom'
 
   return (
     <>
@@ -195,7 +175,7 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
         </svg>
       </div>
 
-      {/* Glow ring around target */}
+      {/* Glow ring */}
       {highlight && (
         <div className="fixed z-[9999] pointer-events-none rounded-2xl" style={{
           left: highlight.left - 6, top: highlight.top - 6,
@@ -205,36 +185,23 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
         }} />
       )}
 
-      {/* Tooltip */}
-      <div className="fixed z-[9999]" style={{ ...tooltipStyle, pointerEvents: 'auto' }} onClick={e => e.stopPropagation()}>
-        <div className="bg-[#0c1425] border border-cyan-500/20 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-cyan-500 text-[10px] font-black text-white flex items-center justify-center">{stepIdx + 1}</span>
-              <span className="text-[9px] font-black text-cyan-400/70 uppercase tracking-wider">de {steps.length}</span>
-            </div>
-            <button onClick={onClose} className="text-slate-600 hover:text-slate-400 transition-colors"><X className="w-3.5 h-3.5" /></button>
+      {/* Tooltip — FIXED at top or bottom edge, centered, never overlaps */}
+      <div className={`fixed z-[9999] left-3 right-3 ${tooltipPos === 'top' ? 'top-2' : 'bottom-14'}`}
+        style={{ pointerEvents: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div className="max-w-sm mx-auto bg-[#0c1425]/95 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="w-5 h-5 rounded-full bg-cyan-500 text-[10px] font-black text-white flex items-center justify-center shrink-0">{stepIdx + 1}</span>
+            <h4 className="text-[12px] font-black text-white leading-tight flex-1">{step?.title}</h4>
+            <button onClick={onClose} className="text-slate-600 hover:text-slate-400 shrink-0"><X className="w-3.5 h-3.5" /></button>
           </div>
-
-          {/* Content */}
-          <h4 className="text-[13px] font-black text-white mb-1 leading-tight">{step?.title}</h4>
-          <p className="text-[11px] text-slate-400 font-medium leading-relaxed mb-3">{step?.description}</p>
-
-          {/* Tap indicator */}
-          <div className="flex items-center gap-1.5 mb-3 bg-cyan-500/5 border border-cyan-500/10 rounded-lg px-2.5 py-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-[10px] font-bold text-cyan-400/80">Tocá el botón resaltado para continuar</span>
-          </div>
-
-          {/* Progress + nav */}
-          <div className="flex items-center gap-2">
+          <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-2 pl-7">{step?.description}</p>
+          <div className="flex items-center gap-2 pl-7">
             <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-cyan-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${((stepIdx + 1) / steps.length) * 100}%` }} />
+              <div className="h-full bg-cyan-500 rounded-full transition-all duration-500" style={{ width: `${((stepIdx + 1) / steps.length) * 100}%` }} />
             </div>
             <div className="flex gap-1 shrink-0">
-              {stepIdx > 0 && <button onClick={() => setStepIdx(stepIdx - 1)} className="text-[10px] text-slate-500 hover:text-white font-bold px-1.5 py-0.5 rounded transition-colors">←</button>}
-              <button onClick={advanceStep} className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold px-1.5 py-0.5 rounded transition-colors">Saltar →</button>
+              {stepIdx > 0 && <button onClick={() => setStepIdx(stepIdx - 1)} className="text-[10px] text-slate-500 hover:text-white font-bold px-1.5 py-0.5 rounded">←</button>}
+              <button onClick={advanceStep} className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold px-1.5 py-0.5 rounded">Saltar →</button>
             </div>
           </div>
         </div>
