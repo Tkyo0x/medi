@@ -92,36 +92,12 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
     return () => { active = false; cancelAnimationFrame(rafRef.current); clearTimeout(t) }
   }, [phase, stepIdx, updateHighlight])
 
-  // Listen for click/input on target to advance
+  // Listen for click on target to advance (skip for waitForInput steps)
   useEffect(() => {
     if (phase !== 'practice') return
     const step = steps[stepIdx]
-    if (!step) return
+    if (!step || step.waitForInput) return
 
-    // For input steps: watch for value changes, advance after typing stops
-    if (step.waitForInput) {
-      let inputTimer: NodeJS.Timeout | null = null
-      const watchInput = () => {
-        const el = document.querySelector(`[data-tutorial="${step.target}"]`) as HTMLInputElement
-        if (el && el.value && el.value.length > 0) {
-          if (inputTimer) clearTimeout(inputTimer)
-          inputTimer = setTimeout(advanceStep, 2000)
-        }
-      }
-      const interval = setInterval(watchInput, 500)
-      // Also listen for typing
-      const inputHandler = () => {
-        if (inputTimer) clearTimeout(inputTimer)
-        const el = document.querySelector(`[data-tutorial="${step.target}"]`) as HTMLInputElement
-        if (el && el.value && el.value.length > 0) {
-          inputTimer = setTimeout(advanceStep, 2000)
-        }
-      }
-      document.addEventListener('input', inputHandler, true)
-      return () => { clearInterval(interval); document.removeEventListener('input', inputHandler, true); if (inputTimer) clearTimeout(inputTimer) }
-    }
-
-    // For normal steps: click to advance
     const handler = (e: Event) => {
       const el = document.querySelector(`[data-tutorial="${step.target}"]`)
       if (el && (el === e.target || el.contains(e.target as Node))) {
@@ -226,7 +202,11 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
             </div>
             <div className="flex gap-1 shrink-0">
               {stepIdx > 0 && <button onClick={() => setStepIdx(stepIdx - 1)} className="text-[10px] text-slate-500 hover:text-white font-bold px-1.5 py-0.5 rounded">←</button>}
-              <button onClick={advanceStep} className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold px-1.5 py-0.5 rounded">Saltar →</button>
+              {step?.waitForInput ? (
+                <button onClick={advanceStep} className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-lg">Listo ✓</button>
+              ) : (
+                <button onClick={advanceStep} className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold px-1.5 py-0.5 rounded">Saltar →</button>
+              )}
             </div>
           </div>
         </div>
