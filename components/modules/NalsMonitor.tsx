@@ -7,8 +7,10 @@ import {
   Mail, MessageCircle, ClipboardList, ListOrdered, Biohazard, CircleDot,
   Baby, Scale, RotateCcw, AlertCircle, Trash2, ChevronUp, Waves, Hand,
   Flame, Bell, Eraser, GitGraph, HeartPulse, PlusCircle, AlertTriangle,
-  TestTube, X, Zap
+  TestTube, X, Zap, HelpCircle
 } from 'lucide-react'
+import ModuleTutorial, { useTutorial } from '@/components/tutorial/ModuleTutorial'
+import { NALS_SLIDES, NALS_STEPS } from '@/components/tutorial/nalsTutorial'
 
 const CICLO = 60
 
@@ -150,6 +152,7 @@ export default function NalsMonitor() {
 
   const tRef = useRef<NodeJS.Timeout | null>(null)
   const mRef = useRef<NodeJS.Timeout | null>(null)
+  const { showTutorial, setShowTutorial } = useTutorial('nals-monitor')
 
   const w = useMemo(() => parseFloat(weightStr) || 0, [weightStr])
   const dose = useMemo(() => { const x = Math.max(0.01, w); return { epiLow: (x * 0.1).toFixed(2), epiHigh: (x * 0.3).toFixed(2), epiET: (x * 1.0).toFixed(2), bolus: (x * 10).toFixed(1) } }, [w])
@@ -296,11 +299,11 @@ export default function NalsMonitor() {
         <div className="flex items-center gap-1">
           <div className="bg-white/[0.04] px-2 py-1.5 rounded-lg border border-white/[0.06] flex items-center gap-1">
             <span className="text-[7px] font-bold text-slate-500">EG</span>
-            <input type="text" inputMode="decimal" value={egStr} onChange={e => setEgStr(e.target.value)} className="bg-transparent border-none w-6 font-black text-white focus:outline-none text-center p-0 text-[11px]" />
+            <input data-tutorial="nals-eg" type="text" inputMode="decimal" value={egStr} onChange={e => setEgStr(e.target.value)} className="bg-transparent border-none w-6 font-black text-white focus:outline-none text-center p-0 text-[11px]" />
           </div>
           <div className="bg-white/[0.04] px-2 py-1.5 rounded-lg border border-white/[0.06] flex items-center gap-1">
             <span className="text-[7px] font-bold text-slate-500">Kg</span>
-            <input type="text" inputMode="decimal" value={weightStr} onChange={e => setWeightStr(e.target.value)} className="bg-transparent border-none w-6 font-black text-white focus:outline-none text-center p-0 text-[11px]" />
+            <input data-tutorial="nals-weight" type="text" inputMode="decimal" value={weightStr} onChange={e => setWeightStr(e.target.value)} className="bg-transparent border-none w-6 font-black text-white focus:outline-none text-center p-0 text-[11px]" />
           </div>
           <button onClick={() => setModal('finish')} className={`p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 ml-0.5 ${B}`}><Power size={14} /></button>
         </div>
@@ -334,7 +337,7 @@ export default function NalsMonitor() {
 
       {/* RHYTHM & TRIAD */}
       <div className="w-full max-w-2xl grid grid-cols-2 gap-1 mb-1 shrink-0">
-        <div className="grid grid-cols-4 gap-1">
+        <div data-tutorial="nals-ritmo" className="grid grid-cols-4 gap-1">
           {Object.entries(RITMOS).map(([k, v]) => (
             <button key={k} onClick={() => { setRitmo(k); say(`Ritmo: ${v.corto}`); log(`RITMO: ${v.corto}`) }}
               className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${B} ${ritmo === k ? 'bg-blue-600 border-blue-400/50 text-white shadow-lg shadow-blue-600/20' : 'bg-white/[0.03] border-white/[0.06] text-slate-500'}`}>
@@ -342,7 +345,7 @@ export default function NalsMonitor() {
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-4 gap-1">
+        <div data-tutorial="nals-triada" className="grid grid-cols-4 gap-1">
           <button onClick={() => { const v = tep.apariencia === 'TÉRMINO' ? 'PRETERMO' : 'TÉRMINO'; setTep(t => ({ ...t, apariencia: v })); say(`Neonato ${v}`) }}
             className={`py-3 rounded-xl border text-[7px] font-black ${B} ${tep.apariencia === 'PRETERMO' ? 'bg-red-500/20 text-red-300 border-red-500/30' : 'bg-white/[0.03] text-slate-500 border-white/[0.06]'}`}>{tep.apariencia}</button>
           <button onClick={toggleResp}
@@ -358,7 +361,7 @@ export default function NalsMonitor() {
       <div className="w-full max-w-2xl h-[56px] mb-1 shrink-0">
         {!isActive ? (
           <div className="grid grid-cols-4 gap-1.5 h-full font-black">
-            <button onClick={start} className={`bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl text-xs shadow-xl shadow-blue-600/25 uppercase ${B}`}>Iniciar RCP</button>
+            <button data-tutorial="nals-start" onClick={start} className={`bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl text-xs shadow-xl shadow-blue-600/25 uppercase ${B}`}>Iniciar RCP</button>
             {[
               { n: 'CALENTAR', v: 'Calentando.', i: <Flame size={15} />, active: 'bg-amber-500/20 border-amber-500/30 text-amber-300' },
               { n: 'SECAR', v: 'Secando.', i: <Waves size={15} />, active: 'bg-cyan-500/20 border-cyan-500/30 text-cyan-300' },
@@ -396,12 +399,12 @@ export default function NalsMonitor() {
       {/* QUICK ACTIONS */}
       <div className="w-full max-w-2xl grid grid-cols-4 gap-1 mb-1 shrink-0">
         {[
-          { m: 'apgar', i: <Scale size={16} />, l: 'Escalas', c: 'from-indigo-600 to-indigo-500', shadow: 'shadow-indigo-600/15' },
-          { m: 'gases', i: <FlaskConical size={16} />, l: 'Gases', c: 'from-blue-600 to-blue-500', shadow: 'shadow-blue-600/15' },
-          { m: 'farmacos', i: <Syringe size={16} />, l: 'Drogas', c: epiLock ? 'from-slate-700 to-slate-600' : 'from-emerald-600 to-emerald-500', shadow: epiLock ? '' : 'shadow-emerald-600/15', disabled: !isActive },
-          { m: 'causas', i: <ShieldAlert size={16} className={epiLock ? 'text-slate-400' : 'text-amber-400'} />, l: 'Causas', c: 'from-slate-700/80 to-slate-600/80', shadow: '' },
+          { m: 'apgar', i: <Scale size={16} />, l: 'Escalas', c: 'from-indigo-600 to-indigo-500', shadow: 'shadow-indigo-600/15', tut: 'nals-escalas' },
+          { m: 'gases', i: <FlaskConical size={16} />, l: 'Gases', c: 'from-blue-600 to-blue-500', shadow: 'shadow-blue-600/15', tut: 'nals-gases' },
+          { m: 'farmacos', i: <Syringe size={16} />, l: 'Drogas', c: epiLock ? 'from-slate-700 to-slate-600' : 'from-emerald-600 to-emerald-500', shadow: epiLock ? '' : 'shadow-emerald-600/15', disabled: !isActive, tut: 'nals-drogas' },
+          { m: 'causas', i: <ShieldAlert size={16} className={epiLock ? 'text-slate-400' : 'text-amber-400'} />, l: 'Causas', c: 'from-slate-700/80 to-slate-600/80', shadow: '', tut: 'nals-causas' },
         ].map(a => (
-          <button key={a.m} onClick={() => setModal(a.m)} disabled={a.disabled}
+          <button key={a.m} data-tutorial={a.tut} onClick={() => setModal(a.m)} disabled={a.disabled}
             className={`py-3.5 bg-gradient-to-b ${a.c} rounded-xl flex flex-col items-center gap-0.5 text-white ${a.shadow ? `shadow-lg ${a.shadow}` : ''} ${B} disabled:opacity-40`}>
             {a.i}<span className="text-[8px] uppercase font-black tracking-wide">{a.l}</span>
           </button>
@@ -615,10 +618,24 @@ export default function NalsMonitor() {
       {/* FOOTER */}
       <div className="w-full max-w-2xl py-1 flex justify-between items-center px-2 shrink-0 border-t border-white/[0.04]">
         <span className="text-[7px] font-bold text-slate-600 tracking-widest uppercase">NALS v19.5</span>
-        <button onClick={() => setVoice(!voice)} className={`p-1.5 rounded-lg transition-colors ${voice ? 'text-cyan-400 hover:text-cyan-300' : 'text-slate-700 hover:text-slate-500'}`}>
-          {voice ? <Volume2 size={14} /> : <VolumeX size={14} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowTutorial(true)} className="p-1.5 rounded-lg text-slate-600 hover:text-cyan-400 transition-colors"><HelpCircle size={14} /></button>
+          <button onClick={() => setVoice(!voice)} className={`p-1.5 rounded-lg transition-colors ${voice ? 'text-cyan-400 hover:text-cyan-300' : 'text-slate-700 hover:text-slate-500'}`}>
+            {voice ? <Volume2 size={14} /> : <VolumeX size={14} />}
+          </button>
+        </div>
       </div>
+
+      {showTutorial && (
+        <ModuleTutorial
+          moduleId="nals-monitor"
+          moduleName="NALS Monitor"
+          moduleColor="from-blue-500 to-cyan-500"
+          slides={NALS_SLIDES}
+          steps={NALS_STEPS}
+          onClose={() => setShowTutorial(false)}
+        />
+      )}
     </div>
   )
 }
