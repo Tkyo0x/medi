@@ -33,12 +33,14 @@ export const NALS_STEPS: TutorialStep[] = [
   {
     target: 'nals-weight',
     title: '1. Ingresá el peso',
-    description: 'Escribí el peso en kg del neonato. Ejemplo: 3.2 — todas las dosis se recalculan automáticamente.',
+    description: 'Escribí el peso en kg del neonato. Ejemplo: 3.2 — las dosis se recalculan automáticamente. Avanza solo al escribir.',
+    waitForInput: true,
   },
   {
     target: 'nals-eg',
     title: '2. Edad Gestacional',
-    description: 'Escribí las semanas de gestación. Ejemplo: 38. Determina si es prematuro y los rangos de SpO2 esperados.',
+    description: 'Escribí las semanas de gestación. Ejemplo: 38. Avanza solo al escribir.',
+    waitForInput: true,
   },
 
   // ═══ 2. EVALUACIÓN ═══
@@ -164,8 +166,9 @@ export const NALS_STEPS: TutorialStep[] = [
   {
     target: 'nals-nombre',
     title: '21. Nombre del Paciente',
-    description: 'Escribí el nombre o identificación del recién nacido. Aparecerá en la evolución médica y epicrisis.',
+    description: 'Escribí el nombre o identificación del recién nacido. Cuando termines de escribir, avanzará solo.',
     closeModal: false,
+    waitForInput: true,
   },
   {
     target: 'nals-tab-evolucion',

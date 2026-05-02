@@ -14,6 +14,7 @@ export interface TutorialStep {
   title: string
   description: string
   closeModal?: boolean
+  waitForInput?: boolean // wait until user types something, then auto-advance after 2s
 }
 
 interface Props {
@@ -91,12 +92,36 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
     return () => { active = false; cancelAnimationFrame(rafRef.current); clearTimeout(t) }
   }, [phase, stepIdx, updateHighlight])
 
-  // Listen for click on target to advance
+  // Listen for click/input on target to advance
   useEffect(() => {
     if (phase !== 'practice') return
     const step = steps[stepIdx]
     if (!step) return
 
+    // For input steps: watch for value changes, advance after typing stops
+    if (step.waitForInput) {
+      let inputTimer: NodeJS.Timeout | null = null
+      const watchInput = () => {
+        const el = document.querySelector(`[data-tutorial="${step.target}"]`) as HTMLInputElement
+        if (el && el.value && el.value.length > 0) {
+          if (inputTimer) clearTimeout(inputTimer)
+          inputTimer = setTimeout(advanceStep, 2000)
+        }
+      }
+      const interval = setInterval(watchInput, 500)
+      // Also listen for typing
+      const inputHandler = () => {
+        if (inputTimer) clearTimeout(inputTimer)
+        const el = document.querySelector(`[data-tutorial="${step.target}"]`) as HTMLInputElement
+        if (el && el.value && el.value.length > 0) {
+          inputTimer = setTimeout(advanceStep, 2000)
+        }
+      }
+      document.addEventListener('input', inputHandler, true)
+      return () => { clearInterval(interval); document.removeEventListener('input', inputHandler, true); if (inputTimer) clearTimeout(inputTimer) }
+    }
+
+    // For normal steps: click to advance
     const handler = (e: Event) => {
       const el = document.querySelector(`[data-tutorial="${step.target}"]`)
       if (el && (el === e.target || el.contains(e.target as Node))) {
