@@ -1,4 +1,4 @@
-import { Heart, Baby, Syringe, Activity, FileText, Timer, Scale, FlaskConical, ShieldAlert } from 'lucide-react'
+import { Heart, Baby, Syringe, Activity, FileText, Timer, Scale, FlaskConical, ShieldAlert, Power } from 'lucide-react'
 import type { TutorialSlide, TutorialStep } from './ModuleTutorial'
 
 export const NALS_SLIDES: TutorialSlide[] = [
@@ -9,133 +9,174 @@ export const NALS_SLIDES: TutorialSlide[] = [
     color: 'from-blue-500 to-cyan-500',
   },
   {
-    title: 'Paso 1: Datos del Paciente',
-    description: 'Al iniciar, ingresá peso (kg) y edad gestacional (semanas). El sistema calculará todas las dosis automáticamente.',
+    title: 'Datos del Paciente',
+    description: 'Ingresá peso y edad gestacional. El sistema calcula automáticamente todas las dosis de adrenalina, volúmenes y parámetros.',
     icon: <Baby className="w-7 h-7 text-white" />,
     color: 'from-violet-500 to-purple-500',
   },
   {
-    title: 'Paso 2: Evaluar y Reanimar',
-    description: 'Seleccioná el ritmo cardíaco, evaluá la tríada neonatal, e iniciá la RCP. El metrónomo 3:1 te guiará con audio.',
+    title: 'Evaluar y Reanimar',
+    description: 'Seleccioná ritmo, evaluá la tríada neonatal e iniciá RCP. El metrónomo 3:1 te guía con audio. Todo queda registrado.',
     icon: <Activity className="w-7 h-7 text-white" />,
     color: 'from-emerald-500 to-teal-500',
   },
   {
-    title: 'Paso 3: Evolución Médica',
-    description: 'Al finalizar, el sistema genera la evolución narrativa automática lista para copiar a la historia clínica. ¡Ese es el plus!',
+    title: 'Evolución Médica Automática',
+    description: 'Al finalizar, se genera una evolución médica narrativa lista para copiar a la historia clínica. Ese es el plus que ahorra tiempo.',
     icon: <FileText className="w-7 h-7 text-white" />,
     color: 'from-amber-500 to-orange-500',
   },
 ]
 
 export const NALS_STEPS: TutorialStep[] = [
-  // === DATOS INICIALES ===
+  // ═══ 1. DATOS INICIALES ═══
   {
     target: 'nals-weight',
-    title: 'Peso del Neonato',
-    description: 'Ingresá el peso en kg. Las dosis de adrenalina (0.01-0.03 mg/kg) y volúmenes de líquidos se calculan automáticamente según este valor.',
+    title: '1. Ingresá el peso',
+    description: 'Escribí el peso en kg del neonato. Ejemplo: 3.2 — todas las dosis se recalculan automáticamente.',
   },
   {
     target: 'nals-eg',
-    title: 'Edad Gestacional',
-    description: 'Ingresá las semanas de gestación. Esto determina si es prematuro o a término, y los rangos de SpO2 esperados por minuto.',
+    title: '2. Edad Gestacional',
+    description: 'Escribí las semanas de gestación. Ejemplo: 38. Determina si es prematuro y los rangos de SpO2 esperados.',
   },
-  // === EVALUACIÓN ===
+
+  // ═══ 2. EVALUACIÓN ═══
   {
     target: 'nals-ritmo',
-    title: 'Selección de Ritmo',
-    description: 'Seleccioná el ritmo cardíaco del neonato: BRAD (bradicardia), ASIS (asistolia), AESP o NOR (normal). Esto se registra en la bitácora.',
+    title: '3. Ritmo Cardíaco',
+    description: 'Tocá el ritmo actual: BRAD (bradicardia <100), ASIS (asistolia), AESP (sin pulso) o NOR (normal). Queda en la bitácora.',
   },
   {
     target: 'nals-triada',
-    title: 'Tríada de Evaluación',
-    description: 'Evaluá 4 parámetros tocando cada uno: Término/Pretérmino, patrón respiratorio, tono muscular y simetría torácica. Se resaltan en rojo los hallazgos patológicos.',
+    title: '4. Tríada Neonatal',
+    description: 'Tocá cada parámetro para evaluarlo: Término/Pretérmino, respiración (Gasping/Apnea), tono (Flácido) y simetría. Los patológicos se marcan en rojo.',
   },
-  // === INICIO RCP ===
+
+  // ═══ 3. INICIO RCP ═══
   {
     target: 'nals-start',
-    title: 'Iniciar Reanimación',
-    description: 'Tocá para iniciar el cronómetro y el metrónomo 3:1 a 100-120/min. A partir de aquí se habilitan las drogas y se registra todo en la bitácora.',
+    title: '5. ¡Iniciar RCP!',
+    description: 'Tocá para arrancar el cronómetro y el metrónomo 3:1 a 100-120/min. Se habilitan drogas y se registra todo automáticamente.',
   },
-  // === ESCALAS (abre modal) ===
+
+  // ═══ 4. ESCALAS ═══
   {
     target: 'nals-escalas',
-    title: 'Abrir: Escalas Neonatales',
-    description: 'Aquí encontrás el APGAR y la clasificación Sarnat. Tocá para abrir el panel de escalas.',
+    title: '6. Abrir Escalas',
+    description: 'Acá están APGAR y Sarnat. Tocá para abrir.',
     closeModal: false,
   },
   {
     target: 'nals-apgar-calc',
-    title: 'Calculadora APGAR',
-    description: 'Cada categoría (Apariencia, Pulso, Gesticulación, Actividad, Respiración) tiene 3 opciones. Seleccioná el valor para cada una y el puntaje se calcula solo. Registrá al minuto 1, 5 y 10.',
+    title: '7. Calculadora APGAR',
+    description: 'Seleccioná un valor para CADA categoría: Apariencia, Pulso, Gesticulación, Actividad y Respiración. El puntaje se suma automáticamente abajo.',
     closeModal: false,
   },
   {
     target: 'nals-apgar-save',
-    title: 'Guardar APGAR',
-    description: 'Tocá "Guardar" para registrar el puntaje con el minuto actual. Podés registrar varios APGAR durante la reanimación.',
+    title: '8. Guardar APGAR',
+    description: 'Tocá Guardar para registrar este APGAR con el minuto actual. Hacelo al minuto 1, 5 y 10 de vida.',
     closeModal: false,
   },
   {
     target: 'nals-sarnat',
-    title: 'Clasificación Sarnat (opcional)',
-    description: 'Clasificá la encefalopatía: Grado I (leve), II (moderada) o III (severa). Tocá la que corresponda o saltá este paso.',
+    title: '9. Sarnat (si aplica)',
+    description: 'Si sospechás encefalopatía, tocá el grado correspondiente: I (leve), II (moderada) o III (severa). Si no aplica, saltá este paso.',
     closeModal: false,
   },
-  // === GASES (abre modal) ===
+
+  // ═══ 5. GASIMETRÍA ═══
   {
     target: 'nals-gases',
-    title: 'Abrir: Gasimetría Arterial',
-    description: 'Documentá el estado ácido-base del neonato. Tocá para abrir el panel de gases.',
+    title: '10. Abrir Gasimetría',
+    description: 'Documentá el estado ácido-base. Tocá para abrir el panel de gases arteriales.',
     closeModal: true,
   },
   {
     target: 'nals-gases-inputs',
-    title: 'Valores de Gases',
-    description: 'Ingresá los 6 valores: pH, pCO2, pO2, HCO3, Exceso de Base y Lactato. Cada valor queda registrado con hora en la bitácora.',
+    title: '11. Completá los 6 valores',
+    description: 'Ingresá cada uno: pH, pCO2, pO2, HCO3, Exceso de Base (EB) y Lactato. Escribí el número en cada casilla.',
     closeModal: false,
   },
   {
     target: 'nals-gases-save',
-    title: 'Registrar Analítica',
-    description: 'Tocá para guardar los gases. Podés registrar múltiples muestras durante la reanimación — cada una queda con su timestamp.',
+    title: '12. Registrar Analítica',
+    description: 'Cuando hayas completado los valores, tocá para guardar. Podés registrar varias muestras — cada una queda con su hora.',
     closeModal: false,
   },
-  // === DROGAS (abre modal) ===
+
+  // ═══ 6. FARMACOLOGÍA ═══
   {
     target: 'nals-drogas',
-    title: 'Abrir: Farmacología',
-    description: 'Aquí administrás adrenalina, registrás glicemia y líquidos. Las dosis están pre-calculadas por peso. Tocá para abrir.',
+    title: '13. Abrir Farmacología',
+    description: 'Acá administrás adrenalina, controlás glicemia y dás líquidos. Tocá para abrir.',
     closeModal: true,
   },
   {
     target: 'nals-glicemia',
-    title: 'Control de Glicemia',
-    description: 'Ingresá el valor de glucemia en mg/dL. Se documenta en la bitácora y en la evolución médica final.',
+    title: '14. Control de Glicemia',
+    description: 'Escribí el valor de glucemia en mg/dL y tocá ✓ para registrar. Se documenta en la evolución médica.',
     closeModal: false,
   },
   {
     target: 'nals-epi',
-    title: 'Adrenalina 1:10,000',
-    description: 'Tres vías disponibles: IV/CVU (preferida), Intraósea o Endotraqueal. La dosis se muestra en rango (0.01-0.03 mg/kg). Hay bloqueo de seguridad de 2 minutos entre dosis.',
+    title: '15. Adrenalina 1:10,000',
+    description: 'Tocá la vía de administración: IV/CVU (preferida), Intraósea o ET. La dosis ya está calculada (0.01-0.03 mg/kg). Hay bloqueo de 2 min entre dosis.',
     closeModal: false,
   },
   {
     target: 'nals-liquidos',
-    title: 'Líquidos y Hemoderivados',
-    description: 'Bolo salino (10 ml/kg) o Sangre O negativo. Cada administración queda registrada con hora y volumen.',
+    title: '16. Líquidos',
+    description: 'Bolo Salino (10 ml/kg) o Sangre O negativo. Tocá para administrar. Queda registrado con hora y volumen.',
+    closeModal: false,
   },
-  // === CAUSAS (abre modal) ===
+
+  // ═══ 7. CAUSAS ═══
   {
     target: 'nals-causas',
-    title: 'Abrir: MR. SOPA + Causas',
-    description: 'Correctivos ventilatorios (M-R-S-O-P-A), causas reversibles y accesos vasculares. Tocá para abrir.',
+    title: '17. Abrir MR. SOPA + Causas',
+    description: 'Correctivos ventilatorios y causas reversibles. Tocá para abrir.',
     closeModal: true,
   },
   {
     target: 'nals-sopa',
-    title: 'Correctivos MR. SOPA',
-    description: 'M (Máscara), R (Reposicionar), S (Succionar), O (Open boca), P (Presión), A (vía Aérea). Tocá cada paso aplicado — quedan documentados en la evolución.',
+    title: '18. Correctivos MR. SOPA',
+    description: 'Tocá cada paso aplicado: M (Máscara), R (Reposicionar), S (Succionar), O (Open), P (Presión), A (vía Aérea). Quedan documentados.',
+    closeModal: false,
+  },
+
+  // ═══ 8. FINALIZAR ═══
+  {
+    target: 'nals-finish',
+    title: '19. Finalizar Reanimación',
+    description: 'Cuando la reanimación termina, tocá el botón rojo de apagado para seleccionar el desenlace.',
+    closeModal: true,
+  },
+  {
+    target: 'nals-rce',
+    title: '20. Seleccionar Desenlace',
+    description: 'Tocá "RCE Logrado" si hubo retorno a circulación. También podés elegir "No Retorno" o "Cese de RCP". Se genera la epicrisis automáticamente.',
+    closeModal: false,
+  },
+
+  // ═══ 9. EVOLUCIÓN MÉDICA ═══
+  {
+    target: 'nals-nombre',
+    title: '21. Nombre del Paciente',
+    description: 'Escribí el nombre o identificación del recién nacido. Aparecerá en la evolución médica y epicrisis.',
+    closeModal: false,
+  },
+  {
+    target: 'nals-tab-evolucion',
+    title: '22. Ver Evolución Médica',
+    description: 'Tocá la pestaña "Evolución" para ver la nota médica narrativa generada automáticamente con todo lo registrado.',
+    closeModal: false,
+  },
+  {
+    target: 'nals-evolucion-content',
+    title: '23. ¡Tu Evolución Médica!',
+    description: 'Este texto se genera automáticamente. Podés copiarlo directo a la historia clínica, enviarlo por WhatsApp o email. ¡Este es el plus que ahorra tiempo!',
     closeModal: false,
   },
 ]

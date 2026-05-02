@@ -322,7 +322,7 @@ export default function NalsMonitor() {
             <span className="text-[7px] font-bold text-slate-500">Kg</span>
             <input data-tutorial="nals-weight" type="text" inputMode="decimal" value={weightStr} onChange={e => setWeightStr(e.target.value)} className="bg-transparent border-none w-6 font-black text-white focus:outline-none text-center p-0 text-[11px]" />
           </div>
-          <button onClick={() => setModal('finish')} className={`p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 ml-0.5 ${B}`}><Power size={14} /></button>
+          <button data-tutorial="nals-finish" onClick={() => setModal('finish')} className={`p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 ml-0.5 ${B}`}><Power size={14} /></button>
         </div>
       </div>
 
@@ -569,7 +569,7 @@ export default function NalsMonitor() {
               <h3 className="text-white font-black uppercase text-sm mb-1 tracking-tight">Finalizar Monitor</h3>
               <p className="text-slate-500 text-[10px] font-medium mb-6">Se detendrá el registro de eventos</p>
               <div className="flex flex-col gap-2.5">
-                <button onClick={rce} className={`w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-2xl text-[11px] uppercase font-black shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 ${B}`}><HeartPulse size={15} /> RCE Logrado</button>
+                <button data-tutorial="nals-rce" onClick={rce} className={`w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-2xl text-[11px] uppercase font-black shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 ${B}`}><HeartPulse size={15} /> RCE Logrado</button>
                 <button onClick={noReturn} className={`w-full py-3.5 bg-white/[0.04] text-slate-300 border border-white/[0.08] rounded-2xl text-[11px] uppercase font-black flex items-center justify-center gap-2 hover:bg-white/[0.06] ${B}`}><X size={15} className="text-slate-400" /> No Retorno / Fallecimiento</button>
                 <button onClick={() => { setIsActive(false); setResult('Cese de Maniobras'); setModal('export'); say('RCP finalizada.') }} className={`w-full py-3.5 bg-white/[0.04] text-red-400 border border-red-500/20 rounded-2xl text-[11px] uppercase font-black flex items-center justify-center gap-2 hover:bg-red-500/10 ${B}`}><AlertCircle size={15} /> Cese de RCP</button>
                 <button onClick={() => setModal(null)} className="text-[10px] font-bold text-slate-600 py-2 hover:text-slate-400 transition-colors">Cancelar</button>
@@ -589,10 +589,10 @@ export default function NalsMonitor() {
                   <button onClick={() => window.location.reload()} className={`p-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 ${B}`}><RotateCcw size={16} /></button>
                 </div>
               </div>
-              <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="NOMBRE / ID RECIÉN NACIDO..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl text-white font-black text-xs p-3 mb-4 uppercase shrink-0 focus:outline-none focus:border-blue-500/50 placeholder:text-slate-600" />
+              <input data-tutorial="nals-nombre" type="text" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="NOMBRE / ID RECIÉN NACIDO..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl text-white font-black text-xs p-3 mb-4 uppercase shrink-0 focus:outline-none focus:border-blue-500/50 placeholder:text-slate-600" />
               <div className="flex gap-1.5 mb-4 shrink-0">
                 {['report', 'evolucion', 'log'].map(t => (
-                  <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${tab === t ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/[0.03] text-slate-500 border border-white/[0.06]'}`}>
+                  <button key={t} data-tutorial={t === 'evolucion' ? 'nals-tab-evolucion' : undefined} onClick={() => setTab(t)} className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${tab === t ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/[0.03] text-slate-500 border border-white/[0.06]'}`}>
                     {t === 'report' ? 'Resumen' : t === 'evolucion' ? 'Evolución' : 'Bitácora'}
                   </button>
                 ))}
@@ -601,7 +601,7 @@ export default function NalsMonitor() {
                 {tab === 'report' ? (
                   <pre className="text-[10px] text-blue-100/80 whitespace-pre-wrap leading-relaxed tabular-nums font-mono">{report()}</pre>
                 ) : tab === 'evolucion' ? (
-                  <div>
+                  <div data-tutorial="nals-evolucion-content">
                     <div className="flex items-center gap-2 mb-3"><FileText className="w-4 h-4 text-teal-400" /><span className="text-xs font-black text-teal-400 uppercase">Evolución Médica Narrativa</span></div>
                     <p className="text-[11px] text-blue-100/90 leading-[1.7] font-medium">{evolucion()}</p>
                     <button onClick={() => { navigator.clipboard.writeText(evolucion()); alert('Evolución copiada', 'bg-teal-600') }} className={`mt-4 w-full py-2.5 bg-teal-600/20 border border-teal-500/20 text-teal-400 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 ${B}`}><Copy size={14} /> Copiar evolución</button>
