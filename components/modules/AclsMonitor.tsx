@@ -7,8 +7,10 @@ import {
   TrendingUp, ClipboardList, Droplet,
   Biohazard, CircleDot, ArrowDownToLine, 
   Wind, FlaskConical, Stethoscope, Thermometer,
-  Pill, Copy, RotateCcw, AlertTriangle, FileText
+  Pill, Copy, RotateCcw, AlertTriangle, FileText, HelpCircle
 } from 'lucide-react';
+import ModuleTutorial, { useTutorial } from '@/components/tutorial/ModuleTutorial'
+import { ACLS_SLIDES, ACLS_STEPS } from '@/components/tutorial/aclsTutorial'
 
 /**
  * ACLS MONITOR PRO - Clinical Decision Support System
@@ -195,6 +197,20 @@ export default function AclsMonitor() {
   const [showBicarbModal, setShowBicarbModal] = useState(false);
   const [showPotassiumModal, setShowPotassiumModal] = useState(false);
   const [showTrombolisisModal, setShowTrombolisisModal] = useState(false);
+  const { showTutorial, setShowTutorial } = useTutorial('acls-monitor')
+  const tutorialActive = useRef(false)
+  useEffect(() => { tutorialActive.current = showTutorial }, [showTutorial])
+  useEffect(() => { const h = () => setShowTutorial(true); window.addEventListener('open-tutorial', h); return () => window.removeEventListener('open-tutorial', h) }, [setShowTutorial])
+
+  const closeAllAclsModals = useCallback(() => {
+    setShowFinishModal(false); setShowExportModal(false); setShowH5TModal(false);
+    setShowGlucemiaModal(false); setShowLiquidosModal(false); setShowVasoModal(false);
+    setShowHemoderivadosModal(false); setShowTOTModal(false); setShowToxinsModal(false);
+    setShowVolumeInputModal(false); setShowBicarbModal(false); setShowPotassiumModal(false);
+    setShowTrombolisisModal(false); setShowAccesoModal(false);
+  }, [])
+
+  useEffect(() => { window.addEventListener('tutorial-close-modal', closeAllAclsModals); return () => window.removeEventListener('tutorial-close-modal', closeAllAclsModals) }, [closeAllAclsModals])
 
   const [tempGlucemia, setTempGlucemia] = useState('');
   const [tempVolume, setTempVolume] = useState('');
@@ -596,7 +612,7 @@ export default function AclsMonitor() {
       {isActive && !isChecking && !pulseCheckMode && (
         <div className="w-full max-w-2xl grid grid-cols-4 gap-2.5 mb-2">
           <button 
-            onClick={() => requestConfirmation('SHOCK', handleShock, "descarga")} 
+            data-tutorial="acls-shock" onClick={() => requestConfirmation('SHOCK', handleShock, "descarga")} 
             disabled={!(RITMOS as any)[ritmoActual].desfibrilable || isShocking} 
             className={`h-16 rounded-3xl flex flex-col items-center justify-center gap-1 transition-all shadow-xl relative overflow-hidden active:scale-95 border-b-4 ${
               pendingConfirm === 'SHOCK' ? 'bg-amber-500 border-amber-600 text-black animate-pulse' : 'bg-red-600 border-red-800 text-white disabled:opacity-20'
@@ -607,7 +623,7 @@ export default function AclsMonitor() {
           </button>
 
           <button 
-            onClick={() => requestConfirmation('ADR', handleAdrenalina, "adrenalina")} 
+            data-tutorial="acls-adrenalina" onClick={() => requestConfirmation('ADR', handleAdrenalina, "adrenalina")} 
             className={`h-16 rounded-3xl flex flex-col items-center justify-center gap-1 transition-all shadow-xl relative overflow-hidden active:scale-95 border-b-4 ${
               pendingConfirm === 'ADR' ? 'bg-amber-500 border-amber-600 text-black animate-pulse' : 'bg-emerald-600 border-emerald-800 text-white'
             }`}
@@ -616,19 +632,19 @@ export default function AclsMonitor() {
             {pendingConfirm === 'ADR' && <div className="absolute bottom-0 left-0 h-1.5 bg-black/40 animate-shrink-width" />}
           </button>
 
-          <button onClick={() => setShowLiquidosModal(true)} className="h-16 bg-blue-600 border-b-4 border-blue-800 rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-xl transition-all">
+          <button data-tutorial="acls-fluidos" onClick={() => setShowLiquidosModal(true)} className="h-16 bg-blue-600 border-b-4 border-blue-800 rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-xl transition-all">
             <Droplets size={20}/> <span className="text-[9px] font-black uppercase">Fluidos</span>
           </button>
 
-          <button onClick={() => setShowHemoderivadosModal(true)} className="h-16 bg-rose-700 border-b-4 border-rose-900 rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-xl transition-all">
+          <button data-tutorial="acls-hemoderivados" onClick={() => setShowHemoderivadosModal(true)} className="h-16 bg-rose-700 border-b-4 border-rose-900 rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-xl transition-all">
             <Biohazard size={20}/> <span className="text-[9px] font-black uppercase">Sangre</span>
           </button>
           
-          <button onClick={() => setShowGlucemiaModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-amber-500 active:bg-amber-500/10 active:scale-95 shadow-md">
+          <button data-tutorial="acls-glucemia" onClick={() => setShowGlucemiaModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-amber-500 active:bg-amber-500/10 active:scale-95 shadow-md">
             <Activity size={18}/> <span className="text-[8px] font-black uppercase">Glucemia</span>
           </button>
 
-          <button onClick={() => setShowAccesoModal(true)} className={`h-14 border rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md transition-all ${accesosVenosos.length > 0 ? 'bg-cyan-600 border-cyan-400 text-white border-b-4 border-cyan-800' : 'bg-slate-900 border-slate-800 text-cyan-400'}`}>
+          <button data-tutorial="acls-acceso" onClick={() => setShowAccesoModal(true)} className={`h-14 border rounded-3xl flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md transition-all ${accesosVenosos.length > 0 ? 'bg-cyan-600 border-cyan-400 text-white border-b-4 border-cyan-800' : 'bg-slate-900 border-slate-800 text-cyan-400'}`}>
             <Syringe size={18}/> <span className="text-[8px] font-black uppercase">Acceso {accesosVenosos.length > 0 ? `(${accesosVenosos.length})` : ''}</span>
           </button>
 
@@ -636,11 +652,11 @@ export default function AclsMonitor() {
             <CircleDot size={18}/> <span className="text-[8px] font-black uppercase">Vía Aérea</span>
           </button>
 
-          <button onClick={() => setShowVasoModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-purple-400 active:bg-purple-500/10 active:scale-95 shadow-md">
+          <button data-tutorial="acls-soporte" onClick={() => setShowVasoModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-purple-400 active:bg-purple-500/10 active:scale-95 shadow-md">
             <TrendingUp size={18}/> <span className="text-[8px] font-black uppercase">Soporte</span>
           </button>
 
-          <button onClick={() => setShowH5TModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-indigo-400 active:bg-indigo-500/10 active:scale-95 shadow-md">
+          <button data-tutorial="acls-h5t" onClick={() => setShowH5TModal(true)} className="h-14 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-1 text-indigo-400 active:bg-indigo-500/10 active:scale-95 shadow-md">
             <ShieldAlert size={18}/> <span className="text-[8px] font-black uppercase">H's & T's</span>
           </button>
         </div>
@@ -658,8 +674,8 @@ export default function AclsMonitor() {
           </div>
         ) : !isActive && !isFinished ? (
           <div className="grid grid-cols-2 gap-4 h-full">
-            <button onClick={() => handleStartRCPMode('30:2')} className="bg-indigo-600 border-b-8 border-indigo-800 rounded-[40px] font-black uppercase text-2xl shadow-2xl active:translate-y-1 active:border-b-4 transition-all">MODO 30:2</button>
-            <button onClick={() => handleStartRCPMode('CONTINUA')} className="bg-slate-800 border-b-8 border-slate-950 rounded-[40px] font-black uppercase text-2xl shadow-2xl active:translate-y-1 active:border-b-4 transition-all border border-slate-700">CONTINUA</button>
+            <button data-tutorial="acls-start" onClick={() => handleStartRCPMode('30:2')} className="bg-indigo-600 border-b-8 border-indigo-800 rounded-[40px] font-black uppercase text-2xl shadow-2xl active:translate-y-1 active:border-b-4 transition-all">MODO 30:2</button>
+            <button data-tutorial="acls-start" onClick={() => handleStartRCPMode('CONTINUA')} className="bg-slate-800 border-b-8 border-slate-950 rounded-[40px] font-black uppercase text-2xl shadow-2xl active:translate-y-1 active:border-b-4 transition-all border border-slate-700">CONTINUA</button>
           </div>
         ) : isChecking ? (
           <button onClick={() => { setIsChecking(false); setIsCompressing(true); }} className="w-full h-full bg-emerald-600 border-b-8 border-emerald-800 rounded-[40px] font-black text-3xl uppercase animate-pulse shadow-2xl transition-all">REANUDAR RCP</button>
@@ -1058,7 +1074,7 @@ export default function AclsMonitor() {
 
             <div className="flex gap-1.5 mb-4 shrink-0">
               {['resumen', 'evolucion', 'bitacora'].map(t => (
-                <button key={t} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
+                <button key={t} data-tutorial={t === 'evolucion' ? 'acls-tab-evolucion' : undefined} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
                   {t === 'resumen' ? 'Resumen' : t === 'evolucion' ? 'Evolución' : 'Bitácora'}
                 </button>
               ))}
@@ -1067,7 +1083,7 @@ export default function AclsMonitor() {
             <div className="flex-1 overflow-y-auto bg-slate-950 border border-white/5 rounded-[20px] p-5 mb-5 shadow-inner scrollbar-hide text-left">
               {reportTab === 'resumen' && <pre className="text-[10px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">{generateReport()}</pre>}
               {reportTab === 'evolucion' && (
-                <div>
+                <div data-tutorial="acls-evolucion-content">
                   <div className="flex items-center gap-2 mb-3"><FileText className="w-4 h-4 text-indigo-400" /><span className="text-xs font-black text-indigo-400 uppercase">Evolución Médica Narrativa</span></div>
                   <p className="text-[11px] text-slate-200/80 leading-[1.8] font-medium">{evolucionAcls()}</p>
                   <button onClick={() => { const el = document.createElement('textarea'); el.value = evolucionAcls(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="mt-4 w-full py-2.5 bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95">{copied ? <Check size={14}/> : <Copy size={14}/>} {copied ? '¡Copiado!' : 'Copiar evolución'}</button>
@@ -1168,6 +1184,10 @@ export default function AclsMonitor() {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
       `}</style>
+
+      {showTutorial && (
+        <ModuleTutorial moduleId="acls-monitor" moduleName="ACLS Monitor" moduleColor="from-red-500 to-rose-600" slides={ACLS_SLIDES} steps={ACLS_STEPS} onClose={() => setShowTutorial(false)} />
+      )}
 
     </div>
   );

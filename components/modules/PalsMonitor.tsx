@@ -15,8 +15,10 @@ import {
   Hand, Timer, Gauge, ListOrdered, Calendar, FileCheck, Ghost, Flame, Bell, Clipboard,
   FlaskConical as Flask, ZapOff, TrendingDown, Zap as Bolt,
   Anchor, Crosshair, Target, Triangle, MousePointer2, HandMetal, Sparkles,
-  UserPlus, Calculator, UserCog
+  UserPlus, Calculator, UserCog, HelpCircle
 } from 'lucide-react';
+import ModuleTutorial, { useTutorial } from '@/components/tutorial/ModuleTutorial'
+import { PALS_SLIDES, PALS_STEPS } from '@/components/tutorial/palsTutorial'
 
 /**
  * PALS MONITOR PRO - Soporte Vital Avanzado Pediátrico
@@ -198,6 +200,12 @@ export default function PalsMonitor() {
   const [logs, setLogs] = useState<any[]>([]);
   const [modal, setModal] = useState<string | null>(null); 
   const [reportTab, setReportTab] = useState('resumen');
+  const { showTutorial, setShowTutorial } = useTutorial('pals-monitor')
+  const tutorialActive = useRef(false)
+  useEffect(() => { tutorialActive.current = showTutorial }, [showTutorial])
+  useEffect(() => { const h = () => setShowTutorial(true); window.addEventListener('open-tutorial', h); return () => window.removeEventListener('open-tutorial', h) }, [setShowTutorial])
+  useEffect(() => { const h = () => setModal(null); window.addEventListener('tutorial-close-modal', h); return () => window.removeEventListener('tutorial-close-modal', h) }, [])
+  const closeModal = () => { if (!tutorialActive.current) setModal(null) }
   const [compresionCount, setCompresionCount] = useState(0);
   const [ventilacionCount, setVentilacionCount] = useState(0);
   const [bpmTarget, setBpmTarget] = useState(110);
@@ -502,7 +510,7 @@ export default function PalsMonitor() {
             <input type="number" value={weight || ''} onChange={(e) => { setWeight(parseInt(e.target.value) || 0); setManualOverride(true); }} className="bg-transparent border-none w-7 text-[12px] font-black text-white focus:outline-none text-center" />
             <span className="text-[8px] text-slate-500 font-black uppercase">KG</span>
           </div>
-          <button onClick={() => setModal('finish')} className="p-2 bg-red-600 rounded-2xl active:scale-90 shadow-lg text-white ml-2 transition-transform"><Power size={18} /></button>
+          <button data-tutorial="pals-finish" onClick={() => setModal('finish')} className="p-2 bg-red-600 rounded-2xl active:scale-90 shadow-lg text-white ml-2 transition-transform"><Power size={18} /></button>
         </div>
       </div>
 
@@ -528,7 +536,7 @@ export default function PalsMonitor() {
       </div>
 
       {/* RITMOS */}
-      <div className="w-full max-w-2xl grid grid-cols-5 gap-1.5 mb-2 shrink-0">
+      <div data-tutorial="pals-ritmo" className="w-full max-w-2xl grid grid-cols-5 gap-1.5 mb-2 shrink-0">
         {Object.entries(RITMOS).map(([key, info]) => (
           <button key={key} onClick={() => { setRitmoActual(key); speak(info.nombre); addLog(`CAMBIO RITMO: ${info.corto}`, 'PULSE'); }} className={`py-2.5 rounded-2xl text-[9px] font-black uppercase transition-all border ${ritmoActual === key ? 'bg-cyan-600 border-cyan-400 text-white shadow-xl' : 'bg-slate-900/40 border-white/5 text-slate-500'}`}>{info.corto}</button>
         ))}
@@ -550,14 +558,14 @@ export default function PalsMonitor() {
       {/* ACCIÓN RCP */}
       <div className="w-full max-w-2xl h-20 mb-2 shrink-0">
         {!isActive ? (
-          <button onClick={() => setModal('start_choice')} className="w-full h-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-[32px] flex items-center justify-center gap-5 shadow-2xl active:scale-95 transition-all">
+          <button data-tutorial="pals-start" onClick={() => setModal('start_choice')} className="w-full h-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-[32px] flex items-center justify-center gap-5 shadow-2xl active:scale-95 transition-all">
             <UserPlus size={32} /><div className="flex flex-col items-start text-left"><span className="text-xl font-black uppercase tracking-tighter">Preparar Reanimación</span><span className="text-[10px] font-bold opacity-80 uppercase leading-none text-left">Protocolo AHA PALS Pediátrico</span></div>
           </button>
         ) : isChecking ? (
           <div className="bg-indigo-600 h-full p-2 rounded-[32px] flex items-center justify-between px-8 shadow-2xl animate-in zoom-in-95">
             <div className="flex flex-col text-left"><span className="text-[10px] font-black text-white/60 uppercase leading-none">Evaluación</span><span className="text-sm font-black text-white uppercase tracking-wider">¿Existe Pulso?</span></div>
             <div className="flex gap-3">
-              <button onClick={() => { setIsActive(false); setResultadoFinal('RCE LOGRADO (ROSC)'); setModal('export'); speak("Retorno de circulación espontánea."); }} className="bg-white text-indigo-700 rounded-2xl px-6 py-2.5 font-black text-[11px] shadow-xl uppercase active:scale-90">SÍ (ROSC)</button>
+              <button data-tutorial="pals-rosc" onClick={() => { setIsActive(false); setResultadoFinal('RCE LOGRADO (ROSC)'); setModal('export'); speak("Retorno de circulación espontánea."); }} className="bg-white text-indigo-700 rounded-2xl px-6 py-2.5 font-black text-[11px] shadow-xl uppercase active:scale-90">SÍ (ROSC)</button>
               <button onClick={() => { setIsChecking(false); setIsCompressing(true); speak("Continúe compresiones."); }} className="bg-indigo-900/50 text-white border border-indigo-400/30 rounded-2xl px-6 py-2.5 font-black text-[11px] uppercase active:scale-90">NO</button>
             </div>
           </div>
@@ -578,10 +586,10 @@ export default function PalsMonitor() {
 
       {/* QUICK ACTIONS */}
       <div className="w-full max-w-2xl grid grid-cols-4 gap-2 mb-2 shrink-0">
-          <button onClick={handleShock} disabled={!isActive} className="py-4 bg-red-600 rounded-[24px] flex flex-col items-center gap-1 shadow-xl text-white active:scale-95 disabled:opacity-20 transition-all border-b-4 border-red-800"><Bolt size={18} /><span className="text-[9px] font-black uppercase">Choque</span></button>
-          <button onClick={() => setModal('farmacos')} disabled={!isActive} className="py-4 bg-emerald-600 rounded-[24px] flex flex-col items-center gap-1 shadow-xl text-white active:scale-95 transition-all border-b-4 border-emerald-800"><Syringe size={18} /><span className="text-[9px] font-black uppercase tracking-tighter">Dosis</span></button>
+          <button data-tutorial="pals-shock-btn" onClick={handleShock} disabled={!isActive} className="py-4 bg-red-600 rounded-[24px] flex flex-col items-center gap-1 shadow-xl text-white active:scale-95 disabled:opacity-20 transition-all border-b-4 border-red-800"><Bolt size={18} /><span className="text-[9px] font-black uppercase">Choque</span></button>
+          <button data-tutorial="pals-farmacos" onClick={() => setModal('farmacos')} disabled={!isActive} className="py-4 bg-emerald-600 rounded-[24px] flex flex-col items-center gap-1 shadow-xl text-white active:scale-95 transition-all border-b-4 border-emerald-800"><Syringe size={18} /><span className="text-[9px] font-black uppercase tracking-tighter">Dosis</span></button>
           <button onClick={() => setModal('mezclas')} className="py-4 bg-purple-600 rounded-[24px] flex flex-col items-center gap-1 shadow-xl text-white active:scale-95 transition-all border-b-4 border-purple-800"><Flask size={18} /><span className="text-[9px] font-black uppercase tracking-tighter">Mezclas</span></button>
-          <button onClick={() => setModal('h5t')} className="py-4 bg-slate-800 border border-white/5 rounded-[24px] flex flex-col items-center gap-1 text-white active:scale-95 border-b-4 border-slate-950 transition-all shadow-lg"><ShieldAlert size={18} className="text-cyan-400" /><span className="text-[9px] font-black uppercase tracking-tighter">H's & T's</span></button>
+          <button data-tutorial="pals-h5t" onClick={() => setModal('h5t')} className="py-4 bg-slate-800 border border-white/5 rounded-[24px] flex flex-col items-center gap-1 text-white active:scale-95 border-b-4 border-slate-950 transition-all shadow-lg"><ShieldAlert size={18} className="text-cyan-400" /><span className="text-[9px] font-black uppercase tracking-tighter">H's & T's</span></button>
       </div>
 
       {/* EXTRA MANEUVERS */}
@@ -593,8 +601,8 @@ export default function PalsMonitor() {
                <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter whitespace-nowrap">{m.label}</span>
             </button>
           ))}
-          <button onClick={() => setModal('vía_aerea')} className="flex flex-col items-center gap-1 bg-indigo-600/30 border border-indigo-500/20 p-2 rounded-2xl min-w-[75px] active:scale-90 transition-all shrink-0 shadow-sm text-center"><div className="text-indigo-400"><CircleDot size={14}/></div><span className="text-[7px] font-black text-indigo-200 uppercase tracking-tighter whitespace-nowrap">Vía TOT</span></button>
-          <button onClick={() => setModal('vascular')} className="flex flex-col items-center gap-1 bg-blue-600/30 border border-blue-500/20 p-2 rounded-2xl min-w-[75px] active:scale-90 transition-all shrink-0 shadow-sm text-center"><div className="text-blue-400"><Target size={14}/></div><span className="text-[7px] font-black text-blue-200 uppercase tracking-tighter whitespace-nowrap">Acceso Vasc.</span></button>
+          <button data-tutorial="pals-via-aerea" onClick={() => setModal('vía_aerea')} className="flex flex-col items-center gap-1 bg-indigo-600/30 border border-indigo-500/20 p-2 rounded-2xl min-w-[75px] active:scale-90 transition-all shrink-0 shadow-sm text-center"><div className="text-indigo-400"><CircleDot size={14}/></div><span className="text-[7px] font-black text-indigo-200 uppercase tracking-tighter whitespace-nowrap">Vía TOT</span></button>
+          <button data-tutorial="pals-acceso-vasc" onClick={() => setModal('vascular')} className="flex flex-col items-center gap-1 bg-blue-600/30 border border-blue-500/20 p-2 rounded-2xl min-w-[75px] active:scale-90 transition-all shrink-0 shadow-sm text-center"><div className="text-blue-400"><Target size={14}/></div><span className="text-[7px] font-black text-blue-200 uppercase tracking-tighter whitespace-nowrap">Acceso Vasc.</span></button>
       </div>
 
       {/* LOGS */}
@@ -678,13 +686,13 @@ export default function PalsMonitor() {
 
           {modal === 'farmacos' && (
             <div className="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl flex flex-col">
-              <div className="flex justify-between items-center mb-6"><h3 className="font-black text-emerald-400 uppercase text-sm leading-none">Dosis de Paro</h3><button onClick={() => setModal(null)} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button></div>
+              <div className="flex justify-between items-center mb-6"><h3 className="font-black text-emerald-400 uppercase text-sm leading-none">Dosis de Paro</h3><button onClick={closeModal} className="p-2 bg-slate-800 rounded-2xl text-slate-500 hover:text-white transition-colors"><XCircle size={24}/></button></div>
               <div className="space-y-4">
-                 <button onClick={() => { 
+                 <button data-tutorial="pals-epi-btn" onClick={() => { 
                    setAdrenalinas(a => a + 1); setEpiSeconds(0); 
                    addLog(`ADRENALINA ${doses.epi}mg IV/IO`, 'DRUG'); 
                    speak(`Adrenalina. Dosis: ${doses.epi.replace('.', ' coma ')} miligramos.`);
-                   triggerHaptic(100); setModal(null); 
+                   triggerHaptic(100); if (!tutorialActive.current) setModal(null); 
                  }} className="w-full p-6 bg-red-600 text-white rounded-[32px] flex justify-between items-center active:scale-95 shadow-xl transition-all border-b-4 border-red-800">
                    <div className="flex flex-col items-start font-black uppercase"><span className="text-sm">Adrenalina</span><span className="text-[8px] opacity-70">0.01 mg/kg</span></div>
                    <div className="flex flex-col items-end text-right">
@@ -833,12 +841,12 @@ export default function PalsMonitor() {
             <div className="bg-slate-900 border border-white/10 w-full max-w-3xl rounded-[40px] p-6 sm:p-8 shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-500">
               <div className="flex justify-between items-center mb-5 shrink-0"><div className="flex items-center gap-4"><div className="bg-cyan-500 p-2.5 rounded-2xl shadow-lg shadow-cyan-500/20"><FileText className="text-white" size={22}/></div><h3 className="font-black text-white uppercase text-base leading-none">Evolución Médica PALS</h3></div><button onClick={() => window.location.reload()} className="p-2.5 bg-slate-800 rounded-2xl text-slate-400 active:scale-90"><RotateCcw size={20}/></button></div>
               <div className="grid grid-cols-2 gap-2 mb-4 shrink-0">
-                <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-left"><label className="block text-[8px] font-black text-slate-500 uppercase mb-1">Paciente</label><input type="text" value={pacienteNombre} onChange={(e) => setPacienteNombre(e.target.value)} placeholder="NOMBRE..." className="w-full bg-transparent border-none text-white font-black text-sm p-0 focus:outline-none uppercase placeholder:text-slate-700" /></div>
-                <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-left"><label className="block text-[8px] font-black text-slate-500 uppercase mb-1">ID / HC</label><input type="text" value={pacienteId} onChange={(e) => setPacienteId(e.target.value)} placeholder="CC / HC..." className="w-full bg-transparent border-none text-white font-black text-sm p-0 focus:outline-none uppercase placeholder:text-slate-700" /></div>
+                <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-left"><label className="block text-[8px] font-black text-slate-500 uppercase mb-1">Paciente</label><input data-tutorial="pals-nombre" type="text" value={pacienteNombre} onChange={(e) => setPacienteNombre(e.target.value)} placeholder="NOMBRE..." className="w-full bg-transparent border-none text-white font-black text-sm p-0 focus:outline-none uppercase placeholder:text-slate-700" /></div>
+                <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-left"><label className="block text-[8px] font-black text-slate-500 uppercase mb-1">ID / HC</label><input data-tutorial="pals-id" type="text" value={pacienteId} onChange={(e) => setPacienteId(e.target.value)} placeholder="CC / HC..." className="w-full bg-transparent border-none text-white font-black text-sm p-0 focus:outline-none uppercase placeholder:text-slate-700" /></div>
               </div>
               <div className="flex gap-1.5 mb-4 shrink-0">
                 {['resumen', 'evolucion', 'bitacora'].map(t => (
-                  <button key={t} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-cyan-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
+                  <button key={t} data-tutorial={t === 'evolucion' ? 'pals-tab-evolucion' : undefined} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-cyan-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
                     {t === 'resumen' ? 'Resumen' : t === 'evolucion' ? 'Evolución' : 'Bitácora'}
                   </button>
                 ))}
@@ -846,7 +854,7 @@ export default function PalsMonitor() {
               <div className="bg-slate-950 p-5 rounded-[20px] border border-white/5 flex-1 overflow-y-auto mb-5 shadow-inner text-left scrollbar-hide">
                 {reportTab === 'resumen' && <pre className="text-[10px] font-mono text-cyan-200/70 whitespace-pre-wrap leading-relaxed">{generateReportText()}</pre>}
                 {reportTab === 'evolucion' && (
-                  <div>
+                  <div data-tutorial="pals-evolucion-content">
                     <div className="flex items-center gap-2 mb-3"><FileText className="w-4 h-4 text-cyan-400" /><span className="text-xs font-black text-cyan-400 uppercase">Evolución Médica Narrativa</span></div>
                     <p className="text-[11px] text-cyan-100/80 leading-[1.8] font-medium">{evolucionPals()}</p>
                     <button onClick={() => { const el = document.createElement('textarea'); el.value = evolucionPals(); document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); triggerHaptic(100); }} className="mt-4 w-full py-2.5 bg-cyan-600/20 border border-cyan-500/20 text-cyan-400 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95"><Copy size={14} /> Copiar evolución</button>
@@ -901,6 +909,10 @@ export default function PalsMonitor() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
         .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); }
       `}} />
+
+      {showTutorial && (
+        <ModuleTutorial moduleId="pals-monitor" moduleName="PALS Monitor" moduleColor="from-violet-500 to-purple-500" slides={PALS_SLIDES} steps={PALS_STEPS} onClose={() => setShowTutorial(false)} />
+      )}
     </div>
   );
 }
