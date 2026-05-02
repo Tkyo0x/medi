@@ -209,7 +209,6 @@ export default function ModuleTutorial({ moduleId, moduleName, moduleColor, slid
     </>
   )
 }
-}
 
 export function useTutorial(moduleId: string) {
   const [show, setShow] = useState(false)
