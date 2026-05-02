@@ -11,7 +11,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Home, CreditCard, LogOut,
   Zap, Crown, Clock, AlertTriangle, ExternalLink,
   Settings, Users, BarChart3, Trash2, Plus, Search,
-  RefreshCw, Eye, Ban, Gift, Database
+  RefreshCw, Eye, Ban, Gift, Database, HelpCircle
 } from 'lucide-react'
 import NalsMonitor from '@/components/modules/NalsMonitor'
 import PalsMonitor from '@/components/modules/PalsMonitor'
@@ -185,6 +185,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
           <button onClick={() => setActiveModule(null)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white/70 hover:text-white hover:bg-white/[0.06] transition-all active:scale-95"><ChevronLeft className="w-4 h-4" /> Panel</button>
           <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{mod.name}</span>
           <div className="flex items-center gap-2">
+            <button onClick={() => { const evt = new CustomEvent('open-tutorial'); window.dispatchEvent(evt) }} className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 active:scale-95 transition-all"><HelpCircle className="w-3.5 h-3.5" /></button>
             {isAdmin && <span className="text-[10px] font-bold text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-lg border border-violet-500/20">Admin</span>}
             {!isAdmin && trial && !sub && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 flex items-center gap-1"><Timer className="w-3 h-3" />{trial.hours_left}h</span>}
             {!isAdmin && sub && <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 flex items-center gap-1"><Crown className="w-3 h-3" /> Pro</span>}

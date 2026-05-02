@@ -154,6 +154,12 @@ export default function NalsMonitor() {
   const mRef = useRef<NodeJS.Timeout | null>(null)
   const { showTutorial, setShowTutorial } = useTutorial('nals-monitor')
 
+  useEffect(() => {
+    const h = () => setShowTutorial(true)
+    window.addEventListener('open-tutorial', h)
+    return () => window.removeEventListener('open-tutorial', h)
+  }, [setShowTutorial])
+
   const w = useMemo(() => parseFloat(weightStr) || 0, [weightStr])
   const dose = useMemo(() => { const x = Math.max(0.01, w); return { epiLow: (x * 0.1).toFixed(2), epiHigh: (x * 0.3).toFixed(2), epiET: (x * 1.0).toFixed(2), bolus: (x * 10).toFixed(1) } }, [w])
   const min = useMemo(() => Math.floor(elapsed / 60) + 1, [elapsed])
@@ -619,7 +625,6 @@ export default function NalsMonitor() {
       <div className="w-full max-w-2xl py-1 flex justify-between items-center px-2 shrink-0 border-t border-white/[0.04]">
         <span className="text-[7px] font-bold text-slate-600 tracking-widest uppercase">NALS v19.5</span>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowTutorial(true)} className="p-1.5 rounded-lg text-slate-600 hover:text-cyan-400 transition-colors"><HelpCircle size={14} /></button>
           <button onClick={() => setVoice(!voice)} className={`p-1.5 rounded-lg transition-colors ${voice ? 'text-cyan-400 hover:text-cyan-300' : 'text-slate-700 hover:text-slate-500'}`}>
             {voice ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
