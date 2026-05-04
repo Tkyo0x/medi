@@ -16,6 +16,7 @@ import {
 import NalsMonitor from '@/components/modules/NalsMonitor'
 import PalsMonitor from '@/components/modules/PalsMonitor'
 import AclsMonitor from '@/components/modules/AclsMonitor'
+import CodigoRojoMonitor from '@/components/modules/CodigoRojoMonitor'
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 
@@ -34,6 +35,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   '🫀': <Heart className="w-4 h-4" />, '🩺': <Stethoscope className="w-4 h-4" />,
   '📊': <Activity className="w-4 h-4" />, '💊': <Shield className="w-4 h-4" />,
   '📋': <FileText className="w-4 h-4" />, '🧪': <Sparkles className="w-4 h-4" />,
+  '🩸': <Syringe className="w-4 h-4" />,
 }
 
 const CL: Record<string, { text: string; bg: string; light: string; border: string }> = {
@@ -176,7 +178,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
     const trial = trialFor(moduleId)
     const sub = isSub(moduleId)
     const mod = modules.find(m => m.id === moduleId)
-    const Comp = moduleId === 'nals-monitor' ? NalsMonitor : moduleId === 'pals-monitor' ? PalsMonitor : moduleId === 'acls-monitor' ? AclsMonitor : null
+    const Comp = moduleId === 'nals-monitor' ? NalsMonitor : moduleId === 'pals-monitor' ? PalsMonitor : moduleId === 'acls-monitor' ? AclsMonitor : moduleId === 'codigo-rojo' ? CodigoRojoMonitor : null
     if (!Comp || !mod) return null
     return (
       <div className="fixed inset-0 bg-[#040812]">
@@ -195,7 +197,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
     )
   }
 
-  if (activeModule && ['nals-monitor', 'pals-monitor', 'acls-monitor'].includes(activeModule)) return renderModule(activeModule)
+  if (activeModule && ['nals-monitor', 'pals-monitor', 'acls-monitor', 'codigo-rojo'].includes(activeModule)) return renderModule(activeModule)
 
   // ════════════════════════════════
   // ADMIN PANEL VIEW
