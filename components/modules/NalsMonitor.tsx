@@ -245,8 +245,14 @@ export default function NalsMonitor() {
     r += `FECHA: ${n.toLocaleDateString()} ${n.toLocaleTimeString()}\nPACIENTE: ${nombre || 'N/R'}\nPESO: ${w.toFixed(2)} KG | EG: ${egStr || 'N/R'} SEM\nRESULTADO: ${result}\nDURACIÓN: ${Math.floor(elapsed / 60)}m ${elapsed % 60}s\n${'═'.repeat(56)}\n\n`
     r += `TRIADA: ${tep.apariencia} | ${tep.resp} | ${tep.circ}\nSIMETRÍA: ${tep.sim}\nGLICEMIA: ${glicemia ? glicemia + ' mg/dL' : 'N/R'}\n\n`
     r += `ALGORITMO NRP:\n· Pasos iniciales: ${steps.includes('A') ? 'Sí' : 'No'}\n· VPP: ${ventCount > 0 ? ventCount + ' vent.' : 'No'}\n`
-    if (sopa.length) r += `· MR. SOPA: ${sopa.join(', ')}\n`
-    r += `· Compresiones: ${compCount > 0 ? 'Sí (3:1)' : 'No'}\n\n`
+      if (sopa.length) r += `· MR. SOPA: ${sopa.join(', ')}\n`
+      
+      const accesos = logs.filter(l => l.msg.includes('ACCESO:')).map(l => l.msg.replace('ACCESO: ', ''));
+      if (accesos.length) r += `· Accesos: ${accesos.join(', ')}\n`
+      const viasAereas = logs.filter(l => l.msg.includes('VÍA AÉREA: TET')).map(l => l.msg.replace('VÍA AÉREA: ', ''));
+      if (viasAereas.length) r += `· Vía Aérea: ${viasAereas.join(', ')}\n`
+      
+      r += `· Compresiones: ${compCount > 0 ? 'Sí (3:1)' : 'No'}\n\n`
     if (drugs.length || fluids.length) { r += `FARMACOLOGÍA:\n`; drugs.forEach(d => r += `  [${d.time}] ${d.nombre} ${d.dosis} (${d.via})\n`); fluids.forEach(l => r += `  [${l.time}] ${l.nombre} ${l.volumen}ml\n`); r += '\n' }
     if (gasHist.length) { r += `GASIMETRÍA:\n`; gasHist.forEach(g => r += `  [${g.time}] pH:${g.ph} EB:${g.eb} Lac:${g.lac}\n`); r += '\n' }
     if (apgarHist.length) r += `APGAR: ${apgarHist.map(h => `${h.time}→${h.score}/10`).join(' | ')}\n`
@@ -267,8 +273,14 @@ export default function NalsMonitor() {
     if (tep.sim === 'ASIMÉTRICO') e += ` Se evidencia asimetría torácica.`
     if (steps.includes('A')) e += ` Se realizan pasos iniciales de reanimación neonatal (calentamiento, secado, estimulación táctil, posicionamiento de vía aérea).`
     if (ventCount > 0) e += ` Se inicia ventilación a presión positiva (VPP), administrándose ${ventCount} ventilaciones.`
-    if (sopa.length > 0) e += ` Se aplican correctivos ventilatorios MR. SOPA (${sopa.join(', ')}).`
-    if (compCount > 0) e += ` Ante persistencia de bradicardia (FC < 60 lpm), se inician compresiones torácicas coordinadas con ventilación en relación 3:1 (100-120 compresiones/minuto según guías AHA 2025), completándose ${Math.floor(compCount / 4)} ciclos.`
+      if (sopa.length > 0) e += ` Se aplican correctivos ventilatorios MR. SOPA (${sopa.join(', ')}).`
+      
+      const accesos = logs.filter(l => l.msg.includes('ACCESO:')).map(l => l.msg.replace('ACCESO: ', ''));
+      if (accesos.length > 0) e += ` Accesos vasculares establecidos: ${accesos.join(', ')}.`
+      const viasAereas = logs.filter(l => l.msg.includes('VÍA AÉREA: TET')).map(l => l.msg.replace('VÍA AÉREA: ', ''));
+      if (viasAereas.length > 0) e += ` Se asegura vía aérea con ${viasAereas.join(', ')}.`
+
+      if (compCount > 0) e += ` Ante persistencia de bradicardia (FC < 60 lpm), se inician compresiones torácicas coordinadas con ventilación en relación 3:1 (100-120 compresiones/minuto según guías AHA 2025), completándose ${Math.floor(compCount / 4)} ciclos.`
     if (drugs.length > 0) { e += ` Farmacología administrada:`; drugs.forEach(d => { e += ` ${d.nombre} ${d.dosis} vía ${d.via} (${d.time}).` }) }
     if (fluids.length > 0) { e += ` Líquidos administrados:`; fluids.forEach(f => { e += ` ${f.nombre} ${f.volumen}ml (${f.time}).` }) }
     if (gasHist.length > 0) { e += ` Control gasimétrico:`; gasHist.forEach(g => { e += ` pH ${g.ph}, pCO2 ${g.pco2}, pO2 ${g.po2}, HCO3 ${g.hco3}, EB ${g.eb}, Lactato ${g.lac} (${g.time}).` }) }

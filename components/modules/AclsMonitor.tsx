@@ -425,7 +425,7 @@ export default function AclsMonitor() {
 
   const evolucionAcls = () => {
     const totalMin = Math.floor(elapsedSeconds / 60), totalSec = elapsedSeconds % 60
-    let e = `Se atiende código azul. Paciente: ${pacienteNombre || 'sin identificar'}.`
+    let e = `Se atiende código azul. Paciente: ${pacienteNombre || 'sin identificar'}${pacienteCedula ? ` (ID: ${pacienteCedula})` : ''}.`
     e += ` Ritmo cardíaco inicial: ${(RITMOS as any)[ritmoActual]?.nombre || ritmoActual}.`
     e += ` Se inician maniobras de reanimación cardiopulmonar avanzada (ACLS) con compresiones torácicas de alta calidad a 100-120 compresiones/minuto.`
     if (desfibrilaciones > 0) e += ` Se identifican ritmos desfibrilables, realizándose ${desfibrilaciones} descarga${desfibrilaciones > 1 ? 's' : ''} eléctrica${desfibrilaciones > 1 ? 's' : ''}.`
