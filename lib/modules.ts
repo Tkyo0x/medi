@@ -62,7 +62,7 @@ export const MODULES: Module[] = [
   },
   {
     id: 'codigo-rojo',
-    name: 'Código Rojo Pro',
+    name: 'Código Rojo',
     tagline: 'Manejo de Hemorragia Posparto (HPP)',
     description: 'Monitor de asistencia obstétrica crítica con control avanzado de hemoderivados, índice de choque, protocolos de preeclampsia y bitácora narrativa de eventos.',
     category: 'Obstetricia',
