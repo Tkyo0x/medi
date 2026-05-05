@@ -630,11 +630,13 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
 
                   return (
                     <div key={m.id} className={`flex items-center justify-between p-3 rounded-xl transition-colors ${live ? 'hover:bg-slate-50' : 'opacity-40'}`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`${c.iconBg} p-2 rounded-xl ${c.text} ring-2 ${c.ring}/20`}>{ICON_MAP[m.icon] || <Heart className="w-5 h-5" />}</div>
-                        <div>
-                          <span className="text-sm font-bold text-slate-800 block leading-tight">{m.name}</span>
-                          <span className="text-[10px] font-medium text-slate-400">{m.category}</span>
+                      <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                        <div className={`shrink-0 ${c.iconBg} p-2 rounded-xl ${c.text} ring-2 ${c.ring}/20`}>
+                          {ICON_MAP[m.icon] || <Heart className="w-5 h-5" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm font-bold text-slate-800 block truncate">{m.name}</span>
+                          <span className="text-[10px] font-medium text-slate-400 block truncate">{m.category}</span>
                         </div>
                       </div>
                       {subbed ? (
