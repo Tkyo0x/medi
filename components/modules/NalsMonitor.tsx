@@ -506,6 +506,19 @@ export default function NalsMonitor() {
             <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
               <div className="flex justify-between items-center mb-5 shrink-0"><h3 className="text-white font-black uppercase text-sm tracking-tight">Farmacología</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div className="space-y-4 overflow-y-auto scrollbar-hide flex-1">
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-cyan-500/15">
+                  <div className="flex items-center gap-2 mb-3"><Activity className="text-cyan-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Accesos & Vía Aérea</span></div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                     <button onClick={() => { log('ACCESO: Catéter Umbilical', 'SUCCESS'); say('Catéter umbilical.'); alert('CVU OK', 'bg-cyan-600'); if (!tutorialActive.current) setModal(null); }} className={`p-3 bg-cyan-600/20 border border-cyan-500/30 rounded-xl text-cyan-300 ${B}`}><span className="block text-[9px] font-black uppercase">Catéter Umbilical</span></button>
+                     <button onClick={() => { log('ACCESO: Vía Periférica', 'SUCCESS'); say('Acceso periférico.'); alert('Periférico OK', 'bg-cyan-600'); if (!tutorialActive.current) setModal(null); }} className={`p-3 bg-cyan-600/20 border border-cyan-500/30 rounded-xl text-cyan-300 ${B}`}><span className="block text-[9px] font-black uppercase">Vía Periférica</span></button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[3.0, 3.5, 4.0].map(size => (
+                      <button key={size} onClick={() => { log(`VÍA AÉREA: TET #${size.toFixed(1)}`, 'TECH'); say(`Tubo endotraqueal ${size.toFixed(1)}`); alert(`TET #${size.toFixed(1)}`, 'bg-indigo-600'); if (!tutorialActive.current) setModal(null); }} className={`p-2 bg-white/[0.04] border border-white/[0.06] rounded-xl text-slate-300 hover:bg-white/[0.08] ${B}`}><span className="block text-[9px] font-black uppercase">TET #{size.toFixed(1)}</span></button>
+                    ))}
+                  </div>
+                </div>
+
                 <div data-tutorial="nals-glicemia" className="bg-white/[0.03] p-4 rounded-2xl border border-blue-500/15">
                   <div className="flex items-center gap-2 mb-3"><TestTube className="text-blue-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Glicemia</span></div>
                   <div className="flex gap-2">
@@ -528,6 +541,15 @@ export default function NalsMonitor() {
                     <button onClick={() => giveFluid('Sangre O-', dose.bolus)} className={`p-3.5 bg-gradient-to-b from-red-600 to-red-500 rounded-xl text-white shadow-lg shadow-red-600/15 ${B}`}><span className="block text-[10px] font-black uppercase mb-0.5">Sangre O-</span><span className="block text-[9px] text-red-100">{dose.bolus} ml</span></button>
                   </div>
                 </div>
+
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-purple-500/15">
+                  <div className="flex items-center gap-2 mb-3"><Syringe className="text-purple-400" size={15} /><span className="text-[10px] font-black text-white uppercase tracking-wide">Sedoanalgesia & Reversión</span></div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => giveDrug('Morfina', '0.05 mg/kg', 'IV/IM')} className={`p-3.5 bg-gradient-to-b from-purple-600 to-purple-500 rounded-xl text-white shadow-lg shadow-purple-600/15 ${B}`}><span className="block text-[10px] font-black uppercase mb-0.5">Morfina</span><span className="block text-[8px] text-purple-200">0.05 mg/kg</span></button>
+                    <button onClick={() => giveDrug('Naloxona', '0.1 mg/kg', 'IV/IM')} className={`p-3.5 bg-gradient-to-b from-rose-600 to-rose-500 rounded-xl text-white shadow-lg shadow-rose-600/15 ${B}`}><span className="block text-[10px] font-black uppercase mb-0.5">Naloxona</span><span className="block text-[8px] text-rose-200">0.1 mg/kg</span></button>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}

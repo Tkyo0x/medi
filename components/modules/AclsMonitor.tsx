@@ -417,7 +417,10 @@ export default function AclsMonitor() {
            `• Accesos Venosos: ${accesosVenosos.length > 0 ? accesosVenosos.map(a => a.replace(/_/g, ' ')).join(', ') : 'No registrados'}\n` +
            `${vasopresores.length > 0 ? `• Vasopresores: ${vasopresores.join(', ')}\n` : ''}` +
            `\nBITÁCORA CRONOLÓGICA:\n` +
-           `${[...logs].reverse().map(l => `[${l.time}] ${l.msg}`).join('\n')}`;
+           `${[...logs].reverse().map(l => `[${l.time}] ${l.msg}`).join('\n')}` +
+           `\n\n───────────────────────────────────────────────────────\n` +
+           `MÉDICO / RESPONSABLE: ${pacienteNombre || '__________________________'}\n` +
+           `IDENTIFICACIÓN/RM: ${pacienteCedula || '__________________________'}`;
   };
 
   const evolucionAcls = () => {
@@ -1073,6 +1076,10 @@ export default function AclsMonitor() {
               <button onClick={() => safeCloseModal(setShowExportModal)} className="bg-slate-800 p-2 rounded-full text-slate-400"><XCircle size={22} /></button>
             </div>
 
+            <div className="flex gap-2 mb-4 shrink-0">
+              <input type="text" value={pacienteNombre} onChange={e => setPacienteNombre(e.target.value)} placeholder="MÉDICO / PACIENTE..." className="flex-1 bg-slate-950 border border-slate-800 rounded-xl text-white font-black text-xs p-3 focus:outline-none focus:border-indigo-500/50" />
+              <input type="text" value={pacienteCedula} onChange={e => setPacienteCedula(e.target.value)} placeholder="IDENTIFICACIÓN..." className="w-1/3 bg-slate-950 border border-slate-800 rounded-xl text-white font-black text-xs p-3 focus:outline-none focus:border-indigo-500/50" />
+            </div>
             <div className="flex gap-1.5 mb-4 shrink-0">
               {['resumen', 'evolucion', 'bitacora'].map(t => (
                 <button key={t} data-tutorial={t === 'evolucion' ? 'acls-tab-evolucion' : undefined} onClick={() => setReportTab(t)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${reportTab === t ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500 border border-white/5'}`}>
@@ -1123,6 +1130,7 @@ export default function AclsMonitor() {
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { id: 'norepinefrina', label: 'Norepinefrina', dose: '0.1-0.5 µg/kg/min' },
+                  { id: 'adrenalina_inf', label: 'Adrenalina', dose: '0.1-0.5 µg/kg/min' },
                   { id: 'dopamina', label: 'Dopamina', dose: '5-20 µg/kg/min' },
                   { id: 'dobutamina', label: 'Dobutamina', dose: '5-20 µg/kg/min' },
                   { id: 'vasopresina', label: 'Vasopresina', dose: '40 U bolo' },
