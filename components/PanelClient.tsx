@@ -130,7 +130,10 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const searchUsers = (q: string) => {
     setUserSearch(q)
     if (searchTimer.current) clearTimeout(searchTimer.current)
-    if (q.length < 2) { setUserResults([]); return }
+    if (q.trim() === '') {
+      fetch('/api/admin/users').then(r => r.json()).then(data => setUserResults(data)).catch(() => {})
+      return
+    }
     searchTimer.current = setTimeout(async () => {
       const r = await fetch(`/api/admin/users?search=${encodeURIComponent(q)}`)
       if (r.ok) setUserResults(await r.json())
@@ -363,11 +366,12 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
             <div className="relative mb-4">
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:border-indigo-500 transition-all">
                 <Search className="w-5 h-5 text-slate-400" />
-                <input type="text" placeholder="Buscar por email..." value={selectedUser ? `${selectedUser.name} (${selectedUser.email})` : userSearch}
+                <input type="text" placeholder="Buscar por email o nombre..." value={selectedUser ? `${selectedUser.name} (${selectedUser.email})` : userSearch}
                   onChange={e => { setSelectedUser(null); searchUsers(e.target.value) }}
-                  onFocus={() => { if (selectedUser) { setSelectedUser(null); setUserSearch('') } }}
+                  onFocus={() => { if (selectedUser) { setSelectedUser(null); setUserSearch('') }; searchUsers(''); }}
+                  onBlur={() => setTimeout(() => { if (!selectedUser) setUserResults([]) }, 250)}
                   className="flex-1 text-sm font-bold text-slate-700 bg-transparent focus:outline-none" />
-                {selectedUser && <button onClick={() => { setSelectedUser(null); setUserSearch('') }} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>}
+                {selectedUser && <button onClick={() => { setSelectedUser(null); setUserSearch(''); setUserResults([]); }} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>}
               </div>
               {userResults.length > 0 && !selectedUser && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 max-h-[250px] overflow-y-auto p-2">
@@ -431,10 +435,12 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
             <div className="relative mb-4">
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus-within:bg-white focus-within:ring-4 focus-within:ring-amber-500/10 focus-within:border-amber-500 transition-all">
                 <Search className="w-5 h-5 text-slate-400" />
-                <input type="text" placeholder="Buscar por email..." value={selectedUser ? `${selectedUser.name} (${selectedUser.email})` : userSearch}
+                <input type="text" placeholder="Buscar por email o nombre..." value={selectedUser ? `${selectedUser.name} (${selectedUser.email})` : userSearch}
                   onChange={e => { setSelectedUser(null); searchUsers(e.target.value) }}
+                  onFocus={() => { if (selectedUser) { setSelectedUser(null); setUserSearch('') }; searchUsers(''); }}
+                  onBlur={() => setTimeout(() => { if (!selectedUser) setUserResults([]) }, 250)}
                   className="flex-1 text-sm font-bold text-slate-700 bg-transparent focus:outline-none" />
-                {selectedUser && <button onClick={() => { setSelectedUser(null); setUserSearch('') }} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>}
+                {selectedUser && <button onClick={() => { setSelectedUser(null); setUserSearch(''); setUserResults([]); }} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>}
               </div>
               {userResults.length > 0 && !selectedUser && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 max-h-[250px] overflow-y-auto p-2">
@@ -644,7 +650,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {panelView === 'admin' && isAdmin ? <AdminView /> : !activeModule ? (
+          {panelView === 'admin' && isAdmin ? AdminView() : !activeModule ? (
             <div className="p-4 sm:p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
               
               {/* Premium Welcome Banner */}
