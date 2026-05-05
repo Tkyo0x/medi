@@ -382,7 +382,7 @@ export default function PalsMonitor() {
   const generateReportText = () => {
     const totalMin = Math.floor(elapsedSeconds / 60);
     const totalSec = elapsedSeconds % 60;
-    let report = `EVOLUCIÓN MÉDICA PALS - SOPORTE VITAL PEDIÁTRICO (v23.12)\n`;
+    let report = `EVOLUCIÓN MÉDICA PALS - SOPORTE VITAL PEDIÁTRICO\n`;
     report += `======================================================================\n`;
     report += `PACIENTE: ${pacienteNombre || 'S/D'} | ID: ${pacienteId || 'S/D'}\n`;
     report += `EDAD: ${edad} ${edadUnidad.toUpperCase()} | PESO: ${weight}KG\n`;

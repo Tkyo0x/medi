@@ -241,7 +241,7 @@ export default function NalsMonitor() {
   }, [isActive, isCompressing, isPaused, isChecking])
 
   const report = () => {
-    const n = new Date(); let r = `EVOLUCIÓN MÉDICA NEONATAL — EPICRISIS (v19.5)\n${'═'.repeat(56)}\n`
+    const n = new Date(); let r = `EVOLUCIÓN MÉDICA NEONATAL — EPICRISIS\n${'═'.repeat(56)}\n`
     r += `FECHA: ${n.toLocaleDateString()} ${n.toLocaleTimeString()}\nPACIENTE: ${nombre || 'N/R'}\nPESO: ${w.toFixed(2)} KG | EG: ${egStr || 'N/R'} SEM\nRESULTADO: ${result}\nDURACIÓN: ${Math.floor(elapsed / 60)}m ${elapsed % 60}s\n${'═'.repeat(56)}\n\n`
     r += `TRIADA: ${tep.apariencia} | ${tep.resp} | ${tep.circ}\nSIMETRÍA: ${tep.sim}\nGLICEMIA: ${glicemia ? glicemia + ' mg/dL' : 'N/R'}\n\n`
     r += `ALGORITMO NRP:\n· Pasos iniciales: ${steps.includes('A') ? 'Sí' : 'No'}\n· VPP: ${ventCount > 0 ? ventCount + ' vent.' : 'No'}\n`
@@ -616,7 +616,7 @@ export default function NalsMonitor() {
               <div className="flex justify-between items-center mb-4 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><FileText className="text-blue-400" size={20} /></div>
-                  <div><h3 className="font-black text-white uppercase text-sm leading-none tracking-tight">Evolución Médica</h3><span className="text-[9px] text-slate-500 font-bold">Epicrisis Neonatal v19.5</span></div>
+                  <div><h3 className="font-black text-white uppercase text-sm leading-none tracking-tight">Evolución Médica</h3><span className="text-[9px] text-slate-500 font-bold">Epicrisis Neonatal</span></div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setModal(null)} className={`px-4 py-2 bg-white/[0.04] border border-white/[0.06] rounded-xl text-slate-400 text-[9px] font-black uppercase hover:text-white ${B}`}>Monitor</button>
@@ -668,7 +668,7 @@ export default function NalsMonitor() {
 
       {/* FOOTER */}
       <div className="w-full max-w-2xl py-1 flex justify-between items-center px-2 shrink-0 border-t border-white/[0.04]">
-        <span className="text-[7px] font-bold text-slate-600 tracking-widest uppercase">NALS v19.5</span>
+        <span className="text-[7px] font-bold text-slate-600 tracking-widest uppercase">NALS</span>
         <div className="flex items-center gap-2">
           <button onClick={() => setVoice(!voice)} className={`p-1.5 rounded-lg transition-colors ${voice ? 'text-cyan-400 hover:text-cyan-300' : 'text-slate-700 hover:text-slate-500'}`}>
             {voice ? <Volume2 size={14} /> : <VolumeX size={14} />}
