@@ -48,7 +48,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   const isSignedIn = clerkSignedIn ?? initialSignedIn
 
   const [modStatus, setModStatus] = useState<ModuleStatus | null>(initialStatus)
-  const [modal, setModal] = useState<'trial' | 'subscribe' | null>(null)
+  const [modal, setModal] = useState<'trial' | 'subscribe' | 'privacy' | 'terms' | 'cookies' | null>(null)
   const [selectedModule, setSelectedModule] = useState<string | null>(null)
   const [activeModule, setActiveModule] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -790,13 +790,23 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               </div>
             </div>
             {[
-              { title: 'Plataforma', links: [['Catálogo', '#modules'], ['Precios', '#pricing'], ['FAQ', '#faq'], ['Changelog', '#']] },
-              { title: 'Clínico', links: [['Protocolos NRP', '#'], ['Escalas APGAR', '#'], ['Calculadora de dosis', '#'], ['Guías 2025', '#']] },
-              { title: 'Legal', links: [['Privacidad', '#'], ['Términos de uso', '#'], ['Cookies', '#'], ['Contacto', 'mailto:Jhrodriguez6832@gmail.com']] },
+              { title: 'Plataforma', links: [{ l: 'Catálogo', h: '#modules' }, { l: 'Precios', h: '#pricing' }, { l: 'FAQ', h: '#faq' }, { l: 'Changelog', h: '#modules' }] },
+              { title: 'Clínico', links: [{ l: 'Protocolos NRP', h: '#modules' }, { l: 'Escalas APGAR', h: '#modules' }, { l: 'Calculadora de dosis', h: '#modules' }, { l: 'Guías 2025', h: '#modules' }] },
+              { title: 'Legal', links: [{ l: 'Privacidad', a: () => setModal('privacy') }, { l: 'Términos de uso', a: () => setModal('terms') }, { l: 'Cookies', a: () => setModal('cookies') }, { l: 'Contacto', h: 'mailto:Jhrodriguez6832@gmail.com' }] },
             ].map(col => (
               <div key={col.title} className="sm:col-span-2 sm:col-start-auto">
                 <h4 className="font-black text-[11px] text-slate-900 uppercase tracking-widest mb-4">{col.title}</h4>
-                <ul className="space-y-2.5">{col.links.map(([l, h]) => <li key={l}><a href={h} className="text-sm text-slate-500 hover:text-teal-600 font-medium transition-colors">{l}</a></li>)}</ul>
+                <ul className="space-y-2.5">
+                  {col.links.map(link => (
+                    <li key={link.l}>
+                      {link.a ? (
+                        <button onClick={link.a} className="text-sm text-slate-500 hover:text-teal-600 font-medium transition-colors text-left">{link.l}</button>
+                      ) : (
+                        <a href={link.h} className="text-sm text-slate-500 hover:text-teal-600 font-medium transition-colors block">{link.l}</a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
@@ -844,6 +854,70 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               <button onClick={() => setModal(null)} disabled={isLoading} className="w-full py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all">Volver al catálogo</button>
             </div>
           )}
+
+          {/* Modal Políticas de Privacidad */}
+          {modal === 'privacy' && (
+            <div className="w-full max-w-lg rounded-[2rem] p-8 bg-white shadow-2xl anim-slide" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100"><Shield className="w-6 h-6" /></div>
+                <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-all"><X className="w-5 h-5" /></button>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Política de Privacidad</h3>
+              <div className="text-sm text-slate-600 font-medium space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                <p>En <strong>MediCore Software</strong>, la privacidad clínica es nuestra máxima prioridad. Esta política explica cómo protegemos tus datos y los de tus pacientes.</p>
+                <h4 className="font-bold text-slate-900">1. Procesamiento Local Cero-Conocimiento</h4>
+                <p>Todo el procesamiento clínico, cálculos de dosis, cronómetros y generación de epicrisis se realiza <strong>exclusivamente de forma local en tu dispositivo</strong> (navegador). No transmitimos, recibimos ni almacenamos Historias Clínicas (HC), nombres de pacientes ni datos de salud protegidos (PHI) en nuestros servidores.</p>
+                <h4 className="font-bold text-slate-900">2. Datos de Cuenta</h4>
+                <p>Únicamente almacenamos la información necesaria para gestionar tu licencia de acceso: tu correo electrónico, nombre (provisto por tu proveedor de autenticación) y el estado de tus suscripciones.</p>
+                <h4 className="font-bold text-slate-900">3. Compartición de Datos</h4>
+                <p>No vendemos, alquilamos ni compartimos tus datos personales con terceros bajo ninguna circunstancia, excepto lo estrictamente necesario para procesar pagos a través de nuestras pasarelas autorizadas.</p>
+              </div>
+              <button onClick={() => setModal(null)} className="w-full mt-6 py-3.5 rounded-xl text-sm font-black bg-slate-900 text-white hover:bg-slate-800 transition-all active:scale-[0.98]">Entendido</button>
+            </div>
+          )}
+
+          {/* Modal Términos de Uso */}
+          {modal === 'terms' && (
+            <div className="w-full max-w-lg rounded-[2rem] p-8 bg-white shadow-2xl anim-slide" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100"><FileText className="w-6 h-6" /></div>
+                <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-all"><X className="w-5 h-5" /></button>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Términos de Uso</h3>
+              <div className="text-sm text-slate-600 font-medium space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                <p>Al utilizar las herramientas de <strong>MediCore</strong>, aceptas los siguientes términos de servicio.</p>
+                <h4 className="font-bold text-slate-900">1. Descargo de Responsabilidad Médica (Disclaimer)</h4>
+                <p>MediCore es una herramienta informática de <strong>apoyo y referencia</strong>, diseñada para asistir a profesionales de la salud capacitados. <strong>NO ES UN DISPOSITIVO MÉDICO</strong>. Las calculadoras, cronómetros y protocolos presentes en el software no sustituyen en ningún momento el juicio clínico profesional. El usuario asume toda la responsabilidad por las decisiones médicas tomadas utilizando esta herramienta.</p>
+                <h4 className="font-bold text-slate-900">2. Suscripciones y Pagos</h4>
+                <p>Los accesos se otorgan por módulo individual mediante suscripciones anuales o mensuales. Todas las transacciones son definitivas y no reembolsables una vez activado el acceso completo al módulo, debido a la naturaleza digital del producto.</p>
+                <h4 className="font-bold text-slate-900">3. Uso Aceptable</h4>
+                <p>La licencia de uso es personal e intransferible. Está estrictamente prohibido aplicar ingeniería inversa, revender el acceso o utilizar la plataforma para propósitos ilegales. Nos reservamos el derecho de revocar licencias que violen estos términos.</p>
+              </div>
+              <button onClick={() => setModal(null)} className="w-full mt-6 py-3.5 rounded-xl text-sm font-black bg-slate-900 text-white hover:bg-slate-800 transition-all active:scale-[0.98]">Aceptar y cerrar</button>
+            </div>
+          )}
+
+          {/* Modal Cookies */}
+          {modal === 'cookies' && (
+            <div className="w-full max-w-sm rounded-[2rem] p-8 bg-white shadow-2xl anim-slide text-center" onClick={e => e.stopPropagation()}>
+              <button onClick={() => setModal(null)} className="absolute top-5 right-5 text-slate-300 hover:text-slate-500 transition-colors"><X className="w-5 h-5" /></button>
+              <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-5 border border-emerald-100"><Database className="w-8 h-8" /></div>
+              <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">Política de Cookies</h3>
+              <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
+                Nuestra plataforma es limpia. Utilizamos <strong>únicamente cookies técnicas esenciales</strong> para:
+              </p>
+              <ul className="text-left space-y-3 mb-6">
+                <li className="flex items-start gap-2 text-sm text-slate-600 font-medium"><CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5" /> Mantener tu sesión segura (Login).</li>
+                <li className="flex items-start gap-2 text-sm text-slate-600 font-medium"><CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5" /> Permitir el almacenamiento offline de la PWA.</li>
+                <li className="flex items-start gap-2 text-sm text-slate-600 font-medium"><CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5" /> Prevenir ataques tipo CSRF.</li>
+              </ul>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
+                <p className="text-xs font-bold text-slate-500">🚫 Cero cookies de publicidad, 🚫 Cero rastreadores de terceros.</p>
+              </div>
+              <button onClick={() => setModal(null)} className="w-full py-3.5 rounded-xl text-sm font-black bg-slate-900 text-white hover:bg-slate-800 transition-all active:scale-[0.98]">De acuerdo</button>
+            </div>
+          )}
+
         </div>
       )}
     </div>
