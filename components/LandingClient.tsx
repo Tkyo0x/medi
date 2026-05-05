@@ -771,7 +771,19 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 </div>
                 <span className="font-black text-lg tracking-tight text-slate-900">Medi<span className="text-teal-600">Core</span></span>
               </div>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xs mb-5">Software clínico profesional para equipos de neonatología y cuidado crítico pediátrico.</p>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xs mb-4">Software clínico profesional para equipos de neonatología y cuidado crítico pediátrico.</p>
+              
+              {/* Tarjeta de Contacto Pro */}
+              <a href="mailto:Jhrodriguez6832@gmail.com" className="inline-flex items-center gap-3 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-200 transition-all group mb-5 shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col text-left pr-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-teal-600/70 transition-colors">Soporte Directo</span>
+                  <span className="text-xs font-bold text-slate-700 group-hover:text-teal-700 transition-colors">Jhrodriguez6832@gmail.com</span>
+                </div>
+              </a>
+
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                 <span className="text-xs font-bold text-slate-400">Todos los sistemas operativos</span>
@@ -780,7 +792,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             {[
               { title: 'Plataforma', links: [['Catálogo', '#modules'], ['Precios', '#pricing'], ['FAQ', '#faq'], ['Changelog', '#']] },
               { title: 'Clínico', links: [['Protocolos NRP', '#'], ['Escalas APGAR', '#'], ['Calculadora de dosis', '#'], ['Guías 2025', '#']] },
-              { title: 'Legal', links: [['Privacidad', '#'], ['Términos de uso', '#'], ['Cookies', '#'], ['Contacto', '#']] },
+              { title: 'Legal', links: [['Privacidad', '#'], ['Términos de uso', '#'], ['Cookies', '#'], ['Contacto', 'mailto:Jhrodriguez6832@gmail.com']] },
             ].map(col => (
               <div key={col.title} className="sm:col-span-2 sm:col-start-auto">
                 <h4 className="font-black text-[11px] text-slate-900 uppercase tracking-widest mb-4">{col.title}</h4>
