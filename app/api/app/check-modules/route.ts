@@ -43,7 +43,14 @@ export async function GET(req: NextRequest) {
       name: [user.firstName, user.lastName].filter(Boolean).join(' ') || email.split('@')[0],
       photo: user.imageUrl || '',
     })
-  } catch (e) {
-    return NextResponse.json({ modules: [], name: '', photo: '' })
+  } catch (e: any) {
+    // Le quitamos el silenciador al error para verlo en pantalla
+    return NextResponse.json({ 
+      modules: [], 
+      name: 'ERROR_DETECTADO', 
+      photo: '',
+      debug_error: e?.message || "Error desconocido",
+      full_error: JSON.stringify(e)
+    })
   }
 }
