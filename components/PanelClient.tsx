@@ -598,6 +598,17 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
             <Home className="w-5 h-5" /> Panel Principal
           </button>
 
+<a href="https://www.getmedicore.com/medicore.apk" download
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 transition-all group">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+              <ArrowRight className="w-4 h-4 rotate-90" />
+            </div>
+            <div className="flex-1 text-left">
+              <span className="block text-[13px] leading-tight">App Android</span>
+              <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Descargar APK</span>
+            </div>
+          </a>
+
           {/* Admin button */}
           {isAdmin && (
             <button onClick={() => { setPanelView('admin'); setActiveModule(null); setSidebar(false) }}
