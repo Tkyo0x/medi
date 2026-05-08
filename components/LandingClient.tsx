@@ -20,7 +20,7 @@ import CodigoRojoMonitor from '@/components/modules/CodigoRojoMonitor'
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 interface ModuleStatus { subscribed_modules: string[]; active_trials: ActiveTrial[]; all_trials: string[] }
-interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[]; price?: string; duration?: string; durationUnit?: string }
+interface Props { isSignedIn: boolean; moduleStatus: ModuleStatus | null; modules: Module[]; price?: string; duration?: string; durationUnit?: string; monthlyPrice?: string; monthlyDuration?: string; monthlyUnit?: string; annualPrice?: string; annualDuration?: string; annualUnit?: string }
 
 const BADGE: Record<string, { text: string; cls: string }> = {
   active: { text: 'Disponible', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -45,7 +45,7 @@ const CL: Record<string, { text: string; bg: string; light: string; iconBg: stri
   '#ef4444': { text: 'text-red-600', bg: 'bg-red-600', light: 'bg-red-50', iconBg: 'bg-red-100', ring: 'ring-red-200', gradient: 'from-red-500 to-red-600' },
 }
 
-export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules, price = '3.00', duration = '12', durationUnit = 'months' }: Props) {
+export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initialStatus, modules, price = '20', duration = '1', durationUnit = 'years', monthlyPrice = '3', monthlyDuration = '1', monthlyUnit = 'months', annualPrice = '20', annualDuration = '1', annualUnit = 'years' }: Props) {
   const { isSignedIn: clerkSignedIn } = useUser()
   const isSignedIn = clerkSignedIn ?? initialSignedIn
 
@@ -56,6 +56,14 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   const [isLoading, setIsLoading] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
+  const [planType, setPlanType] = useState<'monthly' | 'annual'>('annual')
+  const currentPrice = planType === 'monthly' ? monthlyPrice : annualPrice
+  const currentDuration = planType === 'monthly' ? monthlyDuration : annualDuration
+  const currentUnit = planType === 'monthly' ? monthlyUnit : annualUnit
+  const currentDurationLabel = currentUnit === 'days' ? (currentDuration === '1' ? 'día' : 'días') : currentUnit === 'years' ? (currentDuration === '1' ? 'año' : 'años') : (currentDuration === '1' ? 'mes' : 'meses')
+  const currentPriceTag = `$${currentPrice}/${currentDuration} ${currentDurationLabel}`
+  const currentPriceShort = `$${currentPrice}`
+  const savingsPercent = Math.round((1 - (parseFloat(annualPrice) / 12) / parseFloat(monthlyPrice)) * 100)
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20)
@@ -568,33 +576,40 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-teal-50/40 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {/* Header centrado */}
           <div className="text-center mb-10 sm:mb-16">
             <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-teal-200 mb-5">
               <Sparkles className="w-3 h-3" /> Precio transparente
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight">Paga solo lo que realmente usas.</h2>
             <p className="text-base text-slate-500 font-medium max-w-lg mx-auto">Cada módulo es independiente. Sin paquetes forzados, sin letra chica.</p>
+
+            {/* Plan toggle */}
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button onClick={() => setPlanType('monthly')} className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all ${planType === 'monthly' ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>Mensual</button>
+              <button onClick={() => setPlanType('annual')} className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${planType === 'annual' ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                Anual {savingsPercent > 0 && <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">-{savingsPercent}%</span>}
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row items-stretch gap-4 sm:gap-6 max-w-4xl mx-auto">
 
-            {/* Card izquierda — El precio grande */}
             <div className="flex-1 relative">
               <div className="absolute -inset-3 bg-gradient-to-br from-teal-200/25 via-cyan-100/15 to-emerald-200/20 rounded-[2.5rem] blur-2xl pointer-events-none" />
               <div className="relative bg-white rounded-[2rem] border-2 border-teal-300/50 p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(13,148,136,0.12)] h-full flex flex-col">
-                <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-teal-500/25">Recomendado</div>
+                <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-teal-500/25">{planType === 'annual' ? 'Mejor valor' : 'Flexible'}</div>
 
                 <div className="pt-4 mb-6">
-                  <p className="text-sm font-bold text-slate-500 mb-4">Suscripción por módulo</p>
+                  <p className="text-sm font-bold text-slate-500 mb-4">Plan {planType === 'annual' ? 'Anual' : 'Mensual'} por módulo</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">{priceShort}</span>
+                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">${currentPrice}</span>
                     <div className="flex flex-col">
                       <span className="text-lg font-black text-slate-400">USD</span>
-                      <span className="text-xs font-bold text-slate-300 -mt-1">por {duration} {durationLabel}</span>
+                      <span className="text-xs font-bold text-slate-300 -mt-1">por {currentDuration} {currentDurationLabel}</span>
                     </div>
                   </div>
-                  <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ ${(parseFloat(price) / Math.max(1, parseInt(duration))).toFixed(2)} USD/{durationUnit === 'months' ? 'mes' : durationUnit === 'days' ? 'día' : 'año'} por módulo</p>
+                  {planType === 'annual' && <p className="text-xs font-bold text-teal-600 mt-3 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">≈ ${(parseFloat(annualPrice) / 12).toFixed(2)} USD/mes — Ahorras {savingsPercent}%</p>}
+                  {planType === 'monthly' && <p className="text-xs font-bold text-slate-500 mt-3 bg-slate-50 inline-block px-3 py-1 rounded-full border border-slate-100">Pago mensual, cancela cuando quieras</p>}
                 </div>
 
                 <div className="flex-1 space-y-3.5 mb-8">
@@ -618,7 +633,6 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
               </div>
             </div>
 
-            {/* Card derecha — Módulos disponibles */}
             <div className="flex-1 bg-white rounded-[2rem] border border-slate-200 p-6 sm:p-8 shadow-sm flex flex-col">
               <h3 className="text-lg font-black text-slate-900 mb-1">Módulos disponibles</h3>
               <p className="text-sm text-slate-500 font-medium mb-6">Activá los que necesites para tu práctica</p>
@@ -646,7 +660,7 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                       ) : trial ? (
                         <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 flex items-center gap-1"><Timer className="w-3 h-3" />{trial.hours_left}h</span>
                       ) : live ? (
-                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">{priceShort}<span className="text-slate-400 font-bold">/{duration}{durationUnit === 'months' ? 'm' : durationUnit === 'days' ? 'd' : 'a'}</span></span>
+                        <span className="text-[11px] font-black text-slate-800 bg-slate-100 px-3 py-1.5 rounded-full">${currentPrice}<span className="text-slate-400 font-bold">/{currentUnit === 'months' ? 'mes' : currentUnit === 'days' ? 'día' : 'año'}</span></span>
                       ) : (
                         <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">Pronto</span>
                       )}

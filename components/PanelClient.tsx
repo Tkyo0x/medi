@@ -294,21 +294,46 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
         <div className="space-y-6 max-w-3xl">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
             <h3 className="text-base font-black text-slate-900 mb-5 flex items-center gap-2"><CreditCard className="w-5 h-5 text-teal-600" /> Precios y Duración</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            
+            <h4 className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-3 mt-2">Plan Mensual</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Precio Módulo (USD)</label>
-                <input type="number" step="0.01" value={appConfig.module_price || ''} onChange={e => setAppConfig(p => ({ ...p, module_price: e.target.value }))}
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Precio (USD)</label>
+                <input type="number" step="0.01" value={appConfig.monthly_price || ''} onChange={e => setAppConfig(p => ({ ...p, monthly_price: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base font-black text-slate-900 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all bg-slate-50 focus:bg-white" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Duración</label>
-                <input type="number" value={appConfig.subscription_duration || ''} onChange={e => setAppConfig(p => ({ ...p, subscription_duration: e.target.value }))}
+                <input type="number" value={appConfig.monthly_duration || ''} onChange={e => setAppConfig(p => ({ ...p, monthly_duration: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base font-black text-slate-900 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all bg-slate-50 focus:bg-white" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Unidad</label>
-                <select value={appConfig.subscription_unit || 'months'} onChange={e => setAppConfig(p => ({ ...p, subscription_unit: e.target.value }))}
+                <select value={appConfig.monthly_unit || 'months'} onChange={e => setAppConfig(p => ({ ...p, monthly_unit: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all appearance-none cursor-pointer">
+                  <option value="days">Días</option>
+                  <option value="months">Meses</option>
+                  <option value="years">Años</option>
+                </select>
+              </div>
+            </div>
+
+            <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest mb-3">Plan Anual</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Precio (USD)</label>
+                <input type="number" step="0.01" value={appConfig.annual_price || ''} onChange={e => setAppConfig(p => ({ ...p, annual_price: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base font-black text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all bg-slate-50 focus:bg-white" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Duración</label>
+                <input type="number" value={appConfig.annual_duration || ''} onChange={e => setAppConfig(p => ({ ...p, annual_duration: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base font-black text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all bg-slate-50 focus:bg-white" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Unidad</label>
+                <select value={appConfig.annual_unit || 'years'} onChange={e => setAppConfig(p => ({ ...p, annual_unit: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none cursor-pointer">
                   <option value="days">Días</option>
                   <option value="months">Meses</option>
                   <option value="years">Años</option>
@@ -318,7 +343,8 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0"><Zap className="w-5 h-5 text-teal-600" /></div>
                <p className="text-sm text-slate-600 font-medium">
-                 El precio actual configurado es de <span className="font-black text-slate-900">${appConfig.module_price || '3.00'} USD</span> por <span className="font-black text-slate-900">{appConfig.subscription_duration || '12'} {appConfig.subscription_unit === 'days' ? 'días' : appConfig.subscription_unit === 'years' ? 'años' : 'meses'}</span>.
+                 Mensual: <span className="font-black text-slate-900">${appConfig.monthly_price || '3'} USD/{appConfig.monthly_duration || '1'} {appConfig.monthly_unit === 'days' ? 'días' : appConfig.monthly_unit === 'years' ? 'años' : 'meses'}</span>
+                 {' · '}Anual: <span className="font-black text-slate-900">${appConfig.annual_price || '20'} USD/{appConfig.annual_duration || '1'} {appConfig.annual_unit === 'days' ? 'días' : appConfig.annual_unit === 'years' ? 'años' : 'meses'}</span>
                </p>
             </div>
           </div>

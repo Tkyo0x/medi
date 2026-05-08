@@ -42,9 +42,15 @@ export default async function Home() {
       isSignedIn={!!userId}
       moduleStatus={moduleStatus}
       modules={MODULES}
-      price={config.module_price || '3.00'}
-      duration={config.subscription_duration || '12'}
-      durationUnit={config.subscription_unit || 'months'}
+      price={config.annual_price || '20'}
+      duration={config.annual_duration || '1'}
+      durationUnit={config.annual_unit || 'years'}
+      monthlyPrice={config.monthly_price || '3'}
+      monthlyDuration={config.monthly_duration || '1'}
+      monthlyUnit={config.monthly_unit || 'months'}
+      annualPrice={config.annual_price || '20'}
+      annualDuration={config.annual_duration || '1'}
+      annualUnit={config.annual_unit || 'years'}
     />
   )
 }
