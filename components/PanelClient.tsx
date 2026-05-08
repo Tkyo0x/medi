@@ -742,31 +742,6 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
                 </div>
               </div>
 
-{/* App Download Banner */}
-              <div className="mb-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 border border-white/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -ml-10 -mb-10" />
-                <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-2xl shadow-teal-500/30 shrink-0">
-                    <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
-                  </div>
-                  <div className="flex-1 text-center sm:text-left">
-                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mb-1">MediCore para Android</h3>
-                    <p className="text-sm text-slate-400 font-medium mb-4 leading-relaxed">Descargá la app y usá tus módulos 100% offline. Funciona sin internet en quirófano.</p>
-                    <div className="flex flex-col sm:flex-row items-center gap-3">
-                      <a href="https://www.getmedicore.com/medicore.apk" download className="inline-flex items-center gap-2.5 bg-white text-slate-900 px-6 py-3 rounded-xl font-black text-sm hover:bg-teal-50 transition-all active:scale-[0.97] shadow-lg">
-                        <ArrowRight className="w-4 h-4 rotate-90" /> Descargar APK
-                      </a>
-                      <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Offline</span>
-                        <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Android</span>
-                        <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-400" /> v1.0</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Active Modules Grid */}
               {accessibleModules.length > 0 && (
                 <>
