@@ -597,12 +597,12 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
             <div className="flex-1 relative">
               <div className="absolute -inset-3 bg-gradient-to-br from-teal-200/25 via-cyan-100/15 to-emerald-200/20 rounded-[2.5rem] blur-2xl pointer-events-none" />
               <div className="relative bg-white rounded-[2rem] border-2 border-teal-300/50 p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(13,148,136,0.12)] h-full flex flex-col">
-                <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-teal-500/25">{planType === 'annual' ? 'Mejor valor' : 'Flexible'}</div>
+                <div key={planType} className="absolute -top-3.5 left-6 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-teal-500/25 transition-all" style={{ animation: 'fadeSlideUp 0.3s ease-out' }}>{planType === 'annual' ? 'Mejor valor' : 'Flexible'}</div>
 
-                <div className="pt-4 mb-6">
+                <div className="pt-4 mb-6" key={planType} style={{ animation: 'fadeSlideUp 0.4s ease-out' }}>
                   <p className="text-sm font-bold text-slate-500 mb-4">Plan {planType === 'annual' ? 'Anual' : 'Mensual'} por módulo</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">${currentPrice}</span>
+                    <span className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none transition-all duration-500 ease-out" key={currentPrice}>${currentPrice}</span>
                     <div className="flex flex-col">
                       <span className="text-lg font-black text-slate-400">USD</span>
                       <span className="text-xs font-bold text-slate-300 -mt-1">por {currentDuration} {currentDurationLabel}</span>
