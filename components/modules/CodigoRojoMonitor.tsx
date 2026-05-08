@@ -512,11 +512,14 @@ export default function CodigoRojoMonitor() {
         <div className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md animate-in fade-in">
           <div className="bg-slate-900 p-10 rounded-[40px] w-full max-w-sm border border-slate-700 shadow-2xl text-center">
              <h3 className="text-2xl font-black uppercase mb-8 tracking-tighter text-white">Desactivar Código</h3>
-             <div className="space-y-4">
-                <button onClick={() => handleFinishProtocol("ESTABILIZACIÓN Y TRASLADO")} className="w-full py-5 bg-emerald-600 border-b-4 border-emerald-800 rounded-[24px] font-black uppercase text-[11px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Estabilización Lograda</button>
-                <button onClick={() => handleFinishProtocol("HISTERECTOMÍA OBSTÉTRICA")} className="w-full py-5 bg-rose-600 border-b-4 border-rose-800 rounded-[24px] font-black uppercase text-[11px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Paso a Cirugía</button>
-                <button onClick={() => handleFinishProtocol("FALLECIMIENTO MATERNO")} className="w-full py-5 bg-slate-800 border-b-4 border-slate-950 rounded-[24px] font-black uppercase text-[11px] shadow-xl active:translate-y-1 transition-all text-slate-300 border border-slate-700 tracking-widest">Fallecimiento</button>
-                <button onClick={() => setModal(null)} className="text-slate-500 text-[10px] font-black uppercase pt-6 block mx-auto tracking-widest hover:text-slate-300">Cancelar</button>
+             <div className="space-y-3">
+                <button onClick={() => handleFinishProtocol("ESTABILIZACIÓN LOGRADA — MANEJO MÉDICO")} className="w-full py-4 bg-emerald-600 border-b-4 border-emerald-800 rounded-[24px] font-black uppercase text-[10px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Estabilización (Manejo Médico)</button>
+                <button onClick={() => handleFinishProtocol("RESOLUCIÓN CON BALÓN DE BAKRI")} className="w-full py-4 bg-cyan-600 border-b-4 border-cyan-800 rounded-[24px] font-black uppercase text-[10px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Balón de Bakri</button>
+                <button onClick={() => handleFinishProtocol("RESOLUCIÓN CON SUTURA UTERINA / VAGINAL")} className="w-full py-4 bg-blue-600 border-b-4 border-blue-800 rounded-[24px] font-black uppercase text-[10px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Sutura (Desgarro / B-Lynch)</button>
+                <button onClick={() => handleFinishProtocol("RESOLUCIÓN CON EMPAQUETAMIENTO UTERINO")} className="w-full py-4 bg-violet-600 border-b-4 border-violet-800 rounded-[24px] font-black uppercase text-[10px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Empaquetamiento (Compresas)</button>
+                <button onClick={() => handleFinishProtocol("HISTERECTOMÍA OBSTÉTRICA")} className="w-full py-4 bg-rose-600 border-b-4 border-rose-800 rounded-[24px] font-black uppercase text-[10px] shadow-xl active:translate-y-1 transition-all text-white tracking-widest">Histerectomía (Último recurso)</button>
+                <button onClick={() => handleFinishProtocol("FALLECIMIENTO MATERNO")} className="w-full py-4 bg-slate-800 border-b-4 border-slate-950 rounded-[24px] font-black uppercase text-[10px] shadow-xl active:translate-y-1 transition-all text-slate-300 border border-slate-700 tracking-widest">Fallecimiento</button>
+                <button onClick={() => setModal(null)} className="text-slate-500 text-[10px] font-black uppercase pt-4 block mx-auto tracking-widest hover:text-slate-300">Cancelar</button>
              </div>
           </div>
         </div>
