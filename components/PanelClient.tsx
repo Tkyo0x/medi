@@ -74,6 +74,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const [userResults, setUserResults] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [grantModule, setGrantModule] = useState('')
+  const [grantPlan, setGrantPlan] = useState<'monthly' | 'annual'>('annual')
   const [appConfig, setAppConfig] = useState<Record<string, string>>({})
   const [configSaving, setConfigSaving] = useState(false)
   const searchTimer = useRef<NodeJS.Timeout | null>(null)
@@ -158,7 +159,7 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
   const grantSub = async () => {
     if (!selectedUser || !grantModule) return
     setAdminLoading(true)
-    await fetch('/api/admin/subscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: selectedUser.id, module_id: grantModule, months: 12 }) })
+    await fetch('/api/admin/subscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: selectedUser.id, module_id: grantModule, months: grantPlan === 'annual' ? 12 : 1 }) })
     setSelectedUser(null); setGrantModule(''); setUserSearch(''); setUserResults([])
     loadAdminSubs(); setAdminLoading(false)
   }
@@ -420,6 +421,11 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
                 className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
                 <option value="">Seleccionar Módulo...</option>
                 {modules.filter(m => m.status === 'active').map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+              <select value={grantPlan} onChange={e => setGrantPlan(e.target.value as 'monthly' | 'annual')}
+                className="px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500 transition-all">
+                <option value="monthly">Mensual (1 mes)</option>
+                <option value="annual">Anual (1 año)</option>
               </select>
               <button onClick={grantSub} disabled={!selectedUser || !grantModule}
                 className="px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-black hover:bg-slate-800 transition-all disabled:opacity-40 flex items-center gap-2 shadow-lg shadow-slate-900/20 active:scale-[0.98]">
