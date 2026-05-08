@@ -15,6 +15,8 @@ import {
 import NalsMonitor from '@/components/modules/NalsMonitor'
 import PalsMonitor from '@/components/modules/PalsMonitor'
 import AclsMonitor from '@/components/modules/AclsMonitor'
+import CodigoRojoMonitor from '@/components/modules/CodigoRojoMonitor'
+
 
 interface ActiveTrial { module_id: string; expires_at: string; hours_left: number }
 interface ModuleStatus { subscribed_modules: string[]; active_trials: ActiveTrial[]; all_trials: string[] }
@@ -111,11 +113,11 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
   // ══════════════════════════════════════════════
   //  VISTA MÓDULO ACTIVO (FULLSCREEN)
   // ══════════════════════════════════════════════
-  if (activeModule && ['nals-monitor', 'pals-monitor', 'acls-monitor'].includes(activeModule)) {
+  if (activeModule && ['nals-monitor', 'pals-monitor', 'acls-monitor', 'codigo-rojo'].includes(activeModule)) {
     const trial = trialFor(activeModule)
     const subbed = isSubscribed(activeModule)
     const mod = modules.find(m => m.id === activeModule)
-    const ModComponent = activeModule === 'nals-monitor' ? NalsMonitor : activeModule === 'pals-monitor' ? PalsMonitor : AclsMonitor
+    const ModComponent = activeModule === 'nals-monitor' ? NalsMonitor : activeModule === 'pals-monitor' ? PalsMonitor : activeModule === 'acls-monitor' ? AclsMonitor : CodigoRojoMonitor
     return (
       <div className="fixed inset-0 bg-slate-950">
         <div className="pb-[44px] h-full">
