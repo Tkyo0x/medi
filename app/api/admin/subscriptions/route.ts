@@ -20,25 +20,27 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth()
   if (!isAdmin(userId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { user_id, module_id } = await req.json()
+  const { user_id, module_id, months } = await req.json()
   if (!user_id || !module_id) return NextResponse.json({ error: 'user_id and module_id required' }, { status: 400 })
 
   const { data: cfgData } = await supabase.from('app_config').select('*')
   const cfg: Record<string, string> = {}
   ;(cfgData || []).forEach((r: any) => { cfg[r.key] = r.value })
-  const price = parseFloat(cfg.module_price || '3.00')
-  const dur = parseInt(cfg.subscription_duration || '12')
-  const unit = cfg.subscription_unit || 'months'
+
+  const isMonthly = months === 1
+  const price = parseFloat(isMonthly ? (cfg.monthly_price || '3') : (cfg.annual_price || '20'))
 
   const expires = new Date()
-  if (unit === 'days') expires.setDate(expires.getDate() + dur)
-  else if (unit === 'years') expires.setFullYear(expires.getFullYear() + dur)
-  else expires.setMonth(expires.getMonth() + dur)
+  if (isMonthly) {
+    expires.setMonth(expires.getMonth() + 1)
+  } else {
+    expires.setFullYear(expires.getFullYear() + 1)
+  }
 
   const { data, error } = await supabase.from('subscriptions').upsert({
     user_id, module_id, price_usd: price, status: 'active',
     starts_at: new Date().toISOString(), expires_at: expires.toISOString(),
-    payment_ref: 'ADMIN_GRANT'
+    payment_ref: isMonthly ? 'ADMIN_MONTHLY' : 'ADMIN_ANNUAL'
   }, { onConflict: 'user_id,module_id' }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
