@@ -214,7 +214,116 @@ export default function NalsMonitor() {
 
   const saveApgar = () => { const t = `${Math.floor(elapsed / 60)}'`; setApgarHist(p => [...p, { time: t, score: apgarTotal }]); log(`APGAR [${t}]: ${apgarTotal}/10`, 'TECH'); say(`Apgar: ${apgarTotal}.`); if (!tutorialActive.current) setModal(null) }
   const saveSarnat = (s: typeof SARNAT[0]) => { setSarnat(s); log(`SARNAT: ${s.stage}`, 'TECH'); say(`Sarnat: ${s.stage}.`); if (!tutorialActive.current) setModal(null) }
-  const saveGases = () => { if (!gases.ph) return; const { time, elapsed } = ts(); setGasHist(p => [{ ...gases, time, elapsed }, ...p]); log(`GASIMETRÍA: pH ${gases.ph}`, 'TECH'); say(`Gases pH ${gases.ph}.`); alert('GASES OK', 'bg-indigo-600'); if (!tutorialActive.current) setModal(null) }
+  const interpretGases = (g: typeof gases) => {
+    const ph = parseFloat(g.ph), pco2 = parseFloat(g.pco2), po2 = parseFloat(g.po2), hco3 = parseFloat(g.hco3), eb = parseFloat(g.eb), lac = parseFloat(g.lac)
+    if (isNaN(ph)) return null
+
+    const eg = parseFloat(egStr) || 39
+    const isPreterm = eg < 37
+
+    // Rangos neonatales
+    const phLow = isPreterm ? 7.25 : 7.35, phHigh = 7.45
+    const pco2Low = isPreterm ? 35 : 35, pco2High = isPreterm ? 50 : 45
+    const po2Low = isPreterm ? 45 : 60, po2High = isPreterm ? 65 : 80
+    const hco3Low = isPreterm ? 18 : 22, hco3High = isPreterm ? 22 : 26
+    const ebLimit = isPreterm ? 4 : 3
+    const lacLimit = isPreterm ? 3.5 : 2.5
+
+    // Paso 1: Estado del pH
+    let phStatus = 'Normal'
+    let phColor = 'text-emerald-400'
+    if (ph < phLow) { phStatus = 'Acidemia'; phColor = 'text-red-400' }
+    else if (ph > phHigh) { phStatus = 'Alcalemia'; phColor = 'text-amber-400' }
+
+    // Paso 2: Trastorno primario
+    let primary = 'Normal'
+    let primaryColor = 'text-emerald-400'
+    if (ph < phLow) {
+      if (!isNaN(pco2) && pco2 > pco2High && !isNaN(hco3) && hco3 < hco3Low) { primary = 'Acidosis Mixta (Resp + Met)'; primaryColor = 'text-red-400' }
+      else if (!isNaN(pco2) && pco2 > pco2High) { primary = 'Acidosis Respiratoria'; primaryColor = 'text-red-400' }
+      else if (!isNaN(hco3) && hco3 < hco3Low) { primary = 'Acidosis Metabólica'; primaryColor = 'text-red-400' }
+      else { primary = 'Acidosis (indeterminada)'; primaryColor = 'text-red-400' }
+    } else if (ph > phHigh) {
+      if (!isNaN(pco2) && pco2 < pco2Low && !isNaN(hco3) && hco3 > hco3High) { primary = 'Alcalosis Mixta (Resp + Met)'; primaryColor = 'text-amber-400' }
+      else if (!isNaN(pco2) && pco2 < pco2Low) { primary = 'Alcalosis Respiratoria'; primaryColor = 'text-amber-400' }
+      else if (!isNaN(hco3) && hco3 > hco3High) { primary = 'Alcalosis Metabólica'; primaryColor = 'text-amber-400' }
+      else { primary = 'Alcalosis (indeterminada)'; primaryColor = 'text-amber-400' }
+    }
+
+    // Paso 3: Compensación (Winter's Formula para acidosis metabólica)
+    let compensation = ''
+    let compColor = 'text-slate-400'
+    if (!isNaN(hco3) && !isNaN(pco2)) {
+      if (primary.includes('Acidosis Metabólica') && !primary.includes('Mixta')) {
+        const expectedPco2 = 1.5 * hco3 + 8
+        if (pco2 >= expectedPco2 - 2 && pco2 <= expectedPco2 + 2) { compensation = 'Compensación respiratoria adecuada'; compColor = 'text-emerald-400' }
+        else if (pco2 > expectedPco2 + 2) { compensation = 'Acidosis respiratoria concomitante'; compColor = 'text-red-400' }
+        else { compensation = 'Alcalosis respiratoria concomitante'; compColor = 'text-amber-400' }
+      } else if (primary.includes('Alcalosis Metabólica') && !primary.includes('Mixta')) {
+        const delta = hco3 - 24
+        const expectedPco2 = 40 + 0.6 * delta
+        if (pco2 >= expectedPco2 - 2 && pco2 <= expectedPco2 + 2) { compensation = 'Compensación respiratoria adecuada'; compColor = 'text-emerald-400' }
+        else if (pco2 < expectedPco2 - 2) { compensation = 'Alcalosis respiratoria concomitante'; compColor = 'text-amber-400' }
+        else { compensation = 'Acidosis respiratoria concomitante'; compColor = 'text-red-400' }
+      } else if (primary.includes('Acidosis Respiratoria') && !primary.includes('Mixta')) {
+        if (hco3 > hco3High) { compensation = 'Compensación metabólica presente'; compColor = 'text-emerald-400' }
+        else { compensation = 'Sin compensación metabólica'; compColor = 'text-amber-400' }
+      } else if (primary.includes('Alcalosis Respiratoria') && !primary.includes('Mixta')) {
+        if (hco3 < hco3Low) { compensation = 'Compensación metabólica presente'; compColor = 'text-emerald-400' }
+        else { compensation = 'Sin compensación metabólica'; compColor = 'text-amber-400' }
+      }
+    }
+
+    // Paso 4: Exceso de Base (Copenhagen/Siggaard-Andersen)
+    let ebStatus = ''
+    let ebColor = 'text-slate-400'
+    if (!isNaN(eb)) {
+      if (eb < -ebLimit) { ebStatus = `Déficit de base (${eb.toFixed(1)}) — Componente metabólico ácido`; ebColor = 'text-red-400' }
+      else if (eb > ebLimit) { ebStatus = `Exceso de base (+${eb.toFixed(1)}) — Componente metabólico alcalino`; ebColor = 'text-amber-400' }
+      else { ebStatus = `EB normal (${eb.toFixed(1)}) — Sin alteración metabólica`; ebColor = 'text-emerald-400' }
+    }
+
+    // Paso 5: Oxigenación
+    let o2Status = ''
+    let o2Color = 'text-slate-400'
+    if (!isNaN(po2)) {
+      if (po2 < po2Low) { o2Status = `Hipoxemia (pO2: ${po2})`; o2Color = 'text-red-400' }
+      else if (po2 > po2High) { o2Status = `Hiperoxemia (pO2: ${po2})`; o2Color = 'text-amber-400' }
+      else { o2Status = `Oxigenación adecuada (pO2: ${po2})`; o2Color = 'text-emerald-400' }
+    }
+
+    // Paso 6: Lactato
+    let lacStatus = ''
+    let lacColor = 'text-slate-400'
+    if (!isNaN(lac)) {
+      if (lac > 4) { lacStatus = `Lactato CRÍTICO (${lac}) — Hipoperfusión severa`; lacColor = 'text-red-400' }
+      else if (lac > lacLimit) { lacStatus = `Lactato elevado (${lac}) — Posible hipoperfusión`; lacColor = 'text-amber-400' }
+      else { lacStatus = `Lactato normal (${lac})`; lacColor = 'text-emerald-400' }
+    }
+
+    // Gravedad global
+    let severity = 'Leve'
+    let sevColor = 'bg-amber-500/15 text-amber-400 border-amber-500/20'
+    if (ph < 7.1 || lac > 5 || eb < -10) { severity = 'CRÍTICO'; sevColor = 'bg-red-500/20 text-red-400 border-red-500/30' }
+    else if (ph < 7.2 || lac > 4 || eb < -6) { severity = 'Severo'; sevColor = 'bg-red-500/15 text-red-400 border-red-500/20' }
+    else if (ph < phLow || lac > lacLimit || Math.abs(eb) > ebLimit) { severity = 'Moderado'; sevColor = 'bg-amber-500/15 text-amber-400 border-amber-500/20' }
+    else { severity = 'Normal'; sevColor = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' }
+
+    return { phStatus, phColor, primary, primaryColor, compensation, compColor, ebStatus, ebColor, o2Status, o2Color, lacStatus, lacColor, severity, sevColor }
+  }
+
+  const [gasInterpretation, setGasInterpretation] = useState<ReturnType<typeof interpretGases>>(null)
+  const saveGases = () => {
+    if (!gases.ph) return
+    const { time, elapsed } = ts()
+    setGasHist(p => [{ ...gases, time, elapsed }, ...p])
+    const interp = interpretGases(gases)
+    setGasInterpretation(interp)
+    const primaryMsg = interp?.primary || 'registrada'
+    log(`GASIMETRÍA: pH ${gases.ph} — ${primaryMsg}`, 'TECH')
+    say(`Gases pH ${gases.ph}. ${primaryMsg}.`)
+    alert('GASES OK', 'bg-indigo-600')
+  }
   const causa = (c: string, a: { label: string; msg: string }) => { log(`MANEJO [${c}]: ${a.label}`, 'TECH'); say(a.msg); alert(a.label, 'bg-indigo-600') }
 
   const toggleResp = () => { const c = ['ESFUERZO (+)', 'GASPING', 'APNEA']; const n = c[(c.indexOf(tep.resp) + 1) % c.length]; setTep(t => ({ ...t, resp: n })); if (n !== 'ESFUERZO (+)') say(`Alerta. ${n}.`); log(`RESPIRATORIO: ${n}`, 'SYSTEM') }
@@ -283,7 +392,14 @@ export default function NalsMonitor() {
       if (compCount > 0) e += ` Ante persistencia de bradicardia (FC < 60 lpm), se inician compresiones torácicas coordinadas con ventilación en relación 3:1 (100-120 compresiones/minuto según guías AHA 2025), completándose ${Math.floor(compCount / 4)} ciclos.`
     if (drugs.length > 0) { e += ` Farmacología administrada:`; drugs.forEach(d => { e += ` ${d.nombre} ${d.dosis} vía ${d.via} (${d.time}).` }) }
     if (fluids.length > 0) { e += ` Líquidos administrados:`; fluids.forEach(f => { e += ` ${f.nombre} ${f.volumen}ml (${f.time}).` }) }
-    if (gasHist.length > 0) { e += ` Control gasimétrico:`; gasHist.forEach(g => { e += ` pH ${g.ph}, pCO2 ${g.pco2}, pO2 ${g.po2}, HCO3 ${g.hco3}, EB ${g.eb}, Lactato ${g.lac} (${g.time}).` }) }
+    if (gasHist.length > 0) {
+      e += ` Control gasimétrico:`
+      gasHist.forEach(g => {
+        e += ` pH ${g.ph}, pCO2 ${g.pco2}, pO2 ${g.po2}, HCO3 ${g.hco3}, EB ${g.eb}, Lactato ${g.lac} (${g.time}).`
+        const interp = interpretGases(g)
+        if (interp) e += ` Interpretación: ${interp.primary}${interp.compensation ? `, ${interp.compensation}` : ''}. ${interp.o2Status}. ${interp.lacStatus}.`
+      })
+    }
     if (apgarHist.length > 0) e += ` Puntuación APGAR: ${apgarHist.map(h => `${h.score}/10 al minuto ${h.time}`).join(', ')}.`
     if (sarnat) e += ` Clasificación de encefalopatía hipóxico-isquémica según Sarnat: ${sarnat.stage}.`
     if (glicemia !== null) e += ` Glicemia capilar: ${glicemia} mg/dL.`
@@ -465,17 +581,74 @@ export default function NalsMonitor() {
         <div className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
 
           {modal === 'gases' && (
-            <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl">
-              <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">Gasimetría</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
+            <div className="bg-[#0c1220] border border-white/[0.06] w-full max-w-md rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+              <div className="flex justify-between items-center mb-5"><h3 className="text-white font-black uppercase text-sm tracking-tight">Gasimetría Arterial</h3><button onClick={closeModal} className="p-1.5 text-slate-500 hover:text-white transition-colors"><X size={18} /></button></div>
               <div data-tutorial="nals-gases-inputs" className="grid grid-cols-2 gap-2.5 mb-5">
-                {Object.keys(gases).map(k => (
-                  <div key={k} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-2xl">
-                    <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1.5">{k.toUpperCase()}</span>
-                    <input type="number" step="0.01" value={(gases as any)[k]} onChange={e => setGases({ ...gases, [k]: e.target.value })} className="bg-transparent w-full font-black text-white focus:outline-none text-base p-0 placeholder:text-slate-700" placeholder="—" />
+                {[
+                  { k: 'ph', label: 'pH', placeholder: '7.35' },
+                  { k: 'pco2', label: 'pCO₂ (mmHg)', placeholder: '40' },
+                  { k: 'po2', label: 'pO₂ (mmHg)', placeholder: '65' },
+                  { k: 'hco3', label: 'HCO₃ (mEq/L)', placeholder: '24' },
+                  { k: 'eb', label: 'EB (mEq/L)', placeholder: '0' },
+                  { k: 'lac', label: 'Lactato (mmol/L)', placeholder: '1.5' },
+                ].map(f => (
+                  <div key={f.k} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-2xl">
+                    <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1.5">{f.label}</span>
+                    <input type="number" step="0.01" value={(gases as any)[f.k]} onChange={e => setGases({ ...gases, [f.k]: e.target.value })} className="bg-transparent w-full font-black text-white focus:outline-none text-base p-0 placeholder:text-slate-700" placeholder={f.placeholder} />
                   </div>
                 ))}
               </div>
-              <button data-tutorial="nals-gases-save" onClick={saveGases} className={`w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl font-black text-[11px] uppercase shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${B}`}><Check size={15} /> Registrar Analítica</button>
+              <button data-tutorial="nals-gases-save" onClick={saveGases} className={`w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl font-black text-[11px] uppercase shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${B}`}><Check size={15} /> Registrar y Analizar</button>
+
+              {/* INTERPRETACIÓN AUTOMÁTICA */}
+              {gasInterpretation && (
+                <div className="mt-5 space-y-2.5 animate-in slide-in-from-bottom-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2"><Activity size={14} className="text-cyan-400" /> Interpretación</span>
+                    <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-lg border ${gasInterpretation.sevColor}`}>{gasInterpretation.severity}</span>
+                  </div>
+
+                  <div className="bg-white/[0.03] border border-white/[0.06] p-3.5 rounded-2xl">
+                    <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest block mb-1">pH — Henderson-Hasselbalch</span>
+                    <span className={`text-[11px] font-black ${gasInterpretation.phColor}`}>{gasInterpretation.phStatus}</span>
+                  </div>
+
+                  <div className="bg-white/[0.03] border border-white/[0.06] p-3.5 rounded-2xl">
+                    <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest block mb-1">Trastorno Primario</span>
+                    <span className={`text-[11px] font-black ${gasInterpretation.primaryColor}`}>{gasInterpretation.primary}</span>
+                  </div>
+
+                  {gasInterpretation.compensation && (
+                    <div className="bg-white/[0.03] border border-white/[0.06] p-3.5 rounded-2xl">
+                      <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest block mb-1">Compensación (Winter)</span>
+                      <span className={`text-[11px] font-black ${gasInterpretation.compColor}`}>{gasInterpretation.compensation}</span>
+                    </div>
+                  )}
+
+                  {gasInterpretation.ebStatus && (
+                    <div className="bg-white/[0.03] border border-white/[0.06] p-3.5 rounded-2xl">
+                      <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest block mb-1">Exceso de Base (Siggaard-Andersen)</span>
+                      <span className={`text-[11px] font-black ${gasInterpretation.ebColor}`}>{gasInterpretation.ebStatus}</span>
+                    </div>
+                  )}
+
+                  {gasInterpretation.o2Status && (
+                    <div className="bg-white/[0.03] border border-white/[0.06] p-3.5 rounded-2xl">
+                      <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest block mb-1">Oxigenación</span>
+                      <span className={`text-[11px] font-black ${gasInterpretation.o2Color}`}>{gasInterpretation.o2Status}</span>
+                    </div>
+                  )}
+
+                  {gasInterpretation.lacStatus && (
+                    <div className="bg-white/[0.03] border border-white/[0.06] p-3.5 rounded-2xl">
+                      <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest block mb-1">Lactato — Perfusión Tisular</span>
+                      <span className={`text-[11px] font-black ${gasInterpretation.lacColor}`}>{gasInterpretation.lacStatus}</span>
+                    </div>
+                  )}
+
+                  <button onClick={() => { if (!tutorialActive.current) setModal(null) }} className={`w-full py-3 bg-white/[0.04] border border-white/[0.06] text-slate-300 rounded-2xl text-[10px] font-black uppercase mt-2 hover:bg-white/[0.06] ${B}`}>Cerrar interpretación</button>
+                </div>
+              )}
             </div>
           )}
 
