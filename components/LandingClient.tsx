@@ -110,6 +110,42 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
     setIsLoading(false)
   }
 
+  const handleEpaycoCheckout = async (plan: 'monthly' | 'annual') => {
+    if (!selectedModule) return
+    setIsLoading(true)
+    try {
+      const r = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module_id: selectedModule, plan })
+      })
+      const data = await r.json()
+      if (!r.ok) { alert(data.error); setIsLoading(false); return }
+
+      // Open ePayco checkout
+      const handler = (window as any).ePayco.checkout.configure({
+        key: data.publicKey,
+        test: data.test
+      })
+      handler.open({
+        name: data.description,
+        description: data.description,
+        invoice: data.reference,
+        currency: 'cop',
+        amount: data.amount.toString(),
+        tax_base: data.taxBase.toString(),
+        tax: '0',
+        country: 'co',
+        lang: 'es',
+        external: 'false',
+        response: data.responseUrl,
+        confirmation: data.confirmationUrl,
+        signature: data.signature,
+      })
+    } catch (e) { console.error(e) }
+    setIsLoading(false)
+  }
+
   const trialFor = (id: string) => modStatus?.active_trials?.find(t => t.module_id === id)
   const isSubscribed = (id: string) => modStatus?.subscribed_modules?.includes(id)
   const hasTried = (id: string) => modStatus?.all_trials?.includes(id)
@@ -864,9 +900,14 @@ export function LandingClient({ isSignedIn: initialSignedIn, moduleStatus: initi
                 </div>
                 <p className="text-[11px] text-slate-500 font-bold">Acceso a {selectedMod?.name} por 12 meses</p>
               </div>
-              <button onClick={handleSubscribe} disabled={isLoading} className="w-full py-3.5 rounded-xl text-sm font-black bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20 transition-all active:scale-[0.98] flex justify-center items-center h-12 mb-3">
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Suscribirse — ${priceTag}`}
-              </button>
+              <div className="space-y-2 mb-3">
+                <button onClick={() => handleEpaycoCheckout('monthly')} disabled={isLoading} className="w-full py-3.5 rounded-xl text-sm font-black bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20 transition-all active:scale-[0.98] flex justify-center items-center h-12">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Mensual — $${monthlyPrice}/mes`}
+                </button>
+                <button onClick={() => handleEpaycoCheckout('annual')} disabled={isLoading} className="w-full py-3.5 rounded-xl text-sm font-black bg-slate-900 text-white transition-all active:scale-[0.98] flex justify-center items-center h-12">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Anual — $${annualPrice}/año (ahorrá ${savingsPercent}%)`}
+                </button>
+              </div>
               <button onClick={() => setModal(null)} disabled={isLoading} className="w-full py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all">Volver al catálogo</button>
             </div>
           )}

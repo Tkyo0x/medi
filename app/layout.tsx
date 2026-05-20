@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
+import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -12,7 +13,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="es" className="h-full antialiased">
         <head><link rel="icon" href="/logo.png" type="image/png" /></head>
-        <body className="min-h-full flex flex-col bg-white text-gray-900">{children}</body>
+        <body className="min-h-full flex flex-col bg-white text-gray-900">
+          {children}
+          <Script src="https://checkout.epayco.co/checkout.js" strategy="beforeInteractive" />
+        </body>
       </html>
     </ClerkProvider>
   )

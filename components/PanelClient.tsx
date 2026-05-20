@@ -117,6 +117,28 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
     await refreshStatus(); setModal(null); setActiveModule(selectedMod); setIsLoading(false)
   }
 
+  const handleEpaycoCheckout = async (plan: 'monthly' | 'annual') => {
+    if (!selectedMod) return
+    setIsLoading(true)
+    try {
+      const r = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module_id: selectedMod, plan })
+      })
+      const data = await r.json()
+      if (!r.ok) { console.error(data.error); setIsLoading(false); return }
+      const handler = (window as any).ePayco.checkout.configure({ key: data.publicKey, test: data.test })
+      handler.open({
+        name: data.description, description: data.description, invoice: data.reference,
+        currency: 'cop', amount: data.amount.toString(), tax_base: data.taxBase.toString(),
+        tax: '0', country: 'co', lang: 'es', external: 'false',
+        response: data.responseUrl, confirmation: data.confirmationUrl, signature: data.signature,
+      })
+    } catch (e) { console.error(e) }
+    setIsLoading(false)
+  }
+
   const selMod = modules.find(m => m.id === selectedMod)
 
   useEffect(() => { const h = () => { if (window.innerWidth >= 768) setSidebar(false) }; window.addEventListener('resize', h); return () => window.removeEventListener('resize', h) }, [])
@@ -854,13 +876,16 @@ export function PanelClient({ userId, userName, userImage, isAdmin, modules, sub
               </div>
               <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Período Concluido</h3>
               <p className="text-lg font-black text-amber-600 mb-2">{selMod?.name}</p>
-              <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">Tu acceso de prueba ha finalizado. Esperamos que la herramienta haya sido de gran utilidad clínica.</p>
-              <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 mb-8">
-                <p className="text-sm font-black text-slate-800 mb-1">Activa tu suscripción Pro</p>
-                <p className="text-xs text-slate-500 mb-3">Contacta al administrador del sistema para obtener tu licencia completa.</p>
-                <a href="mailto:jhrodriguez6832@gmail.com" className="inline-flex items-center justify-center bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-black text-slate-700 shadow-sm hover:shadow hover:text-slate-900 transition-all">jhrodriguez6832@gmail.com</a>
+              <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">Tu acceso de prueba ha finalizado. Activá tu suscripción para seguir usando el módulo.</p>
+              <div className="space-y-2 mb-3">
+                <button onClick={() => handleEpaycoCheckout('monthly')} disabled={isLoading} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20 transition-all active:scale-[0.98] flex justify-center items-center">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Mensual — $3/mes`}
+                </button>
+                <button onClick={() => handleEpaycoCheckout('annual')} disabled={isLoading} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest bg-slate-900 text-white transition-all active:scale-[0.98] flex justify-center items-center">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Anual — $20/año (ahorrá 44%)`}
+                </button>
               </div>
-              <button onClick={() => setModal(null)} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800 transition-all active:scale-[0.98] shadow-lg shadow-slate-900/20">Entendido</button>
+              <button onClick={() => setModal(null)} className="w-full py-3 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Volver</button>
             </div>
           )}
 
